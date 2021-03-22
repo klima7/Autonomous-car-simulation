@@ -9,10 +9,13 @@ CHANNEL_NAME = 'b0RemoteApi'
 
 
 with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, 60) as client:
+
     try:
         simulation = Simulation(client)
         car = Car(client)
         controller = Controller(simulation, car)
+
+        simulation.restart()
         controller.start()
     finally:
         simulation.stop()

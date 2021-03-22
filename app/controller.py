@@ -8,13 +8,18 @@ class Controller:
         self.car = car
 
     def start(self):
-        self.simulation.restart()
+        self.car.set_angle(0)
+        self.car.set_velocity(20)
+        self.car.set_force(60)
+
         self.loop()
 
     def loop(self):
         while True:
             self.update()
-            time.sleep(0.1)
 
     def update(self):
-        self.simulation.print("updating")
+        self.car.set_velocity(20)
+        time.sleep(3)
+        self.car.set_velocity(0)
+        time.sleep(2)

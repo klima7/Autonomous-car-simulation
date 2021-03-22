@@ -1,3 +1,6 @@
+import time
+
+
 class Simulation:
 
     def __init__(self, client):
@@ -14,6 +17,7 @@ class Simulation:
 
     def restart(self):
         self.stop()
+        time.sleep(1)
         self.start()
 
     def print(self, message):
