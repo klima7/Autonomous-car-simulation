@@ -8,23 +8,23 @@ class Car:
     def __init__(self, client: RemoteApiClient):
         self.client = client
 
-        _, self.front_wheel_1 = self.client.simxGetObjectHandle('FrontSteerJoint1', client.simxServiceCall())
-        _, self.front_wheel_2 = self.client.simxGetObjectHandle('FrontSteerJoint2', client.simxServiceCall())
-        _, self.back_wheel_1 = self.client.simxGetObjectHandle('BackWheelJoint1', client.simxServiceCall())
-        _, self.back_wheel_2 = self.client.simxGetObjectHandle('BackWheelJoint2', client.simxServiceCall())
+        _, self.front_left_wheel = self.client.simxGetObjectHandle('FrontLeftSteerJoint', client.simxServiceCall())
+        _, self.front_right_wheel = self.client.simxGetObjectHandle('FrontRightSteerJoint', client.simxServiceCall())
+        _, self.back_left_wheel = self.client.simxGetObjectHandle('BackLeftWheelJoint', client.simxServiceCall())
+        _, self.back_right_wheel = self.client.simxGetObjectHandle('BackRightWheelJoint', client.simxServiceCall())
         _, self.camera = self.client.simxGetObjectHandle('CarVision1', client.simxServiceCall())
 
     def set_force(self, force):
-        self.client.simxSetJointMaxForce(self.back_wheel_1, force, self.client.simxDefaultPublisher())
-        self.client.simxSetJointMaxForce(self.back_wheel_2, force, self.client.simxDefaultPublisher())
+        self.client.simxSetJointMaxForce(self.back_left_wheel, force, self.client.simxDefaultPublisher())
+        self.client.simxSetJointMaxForce(self.back_right_wheel, force, self.client.simxDefaultPublisher())
 
     def set_angle(self, angle):
-        self.client.simxSetJointTargetPosition(self.front_wheel_1, self.to_radians(angle), self.client.simxDefaultPublisher())
-        self.client.simxSetJointTargetPosition(self.front_wheel_2, self.to_radians(angle), self.client.simxDefaultPublisher())
+        self.client.simxSetJointTargetPosition(self.front_left_wheel, self.to_radians(angle), self.client.simxDefaultPublisher())
+        self.client.simxSetJointTargetPosition(self.front_right_wheel, self.to_radians(angle), self.client.simxDefaultPublisher())
 
     def set_velocity(self, velocity):
-        self.client.simxSetJointTargetVelocity(self.back_wheel_1, velocity, self.client.simxDefaultPublisher())
-        self.client.simxSetJointTargetVelocity(self.back_wheel_2, velocity, self.client.simxDefaultPublisher())
+        self.client.simxSetJointTargetVelocity(self.back_left_wheel, velocity, self.client.simxDefaultPublisher())
+        self.client.simxSetJointTargetVelocity(self.back_right_wheel, velocity, self.client.simxDefaultPublisher())
 
     def get_camera_image(self):
         _, size, data = self.client.simxGetVisionSensorImage(self.camera, False, self.client.simxServiceCall())
