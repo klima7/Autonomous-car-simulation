@@ -14,8 +14,6 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, 60) as client:
         simulation = Simulation(client)
         car = Car(client)
         controller = Controller(simulation, car)
-        print("width = ", car.width)
-        print("length = ", car.length)
         simulation.restart()
         controller.start()
     finally:
