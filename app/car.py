@@ -9,12 +9,11 @@ class Car:
     def __init__(self, client: RemoteApiClient):
         self.client = client
 
-        _, self.front_left_wheel = self.client.simxGetObjectHandle('FrontLeftSteerJoint', client.simxServiceCall())
-        _, self.front_right_wheel = self.client.simxGetObjectHandle('FrontRightSteerJoint', client.simxServiceCall())
-        _, self.back_left_wheel = self.client.simxGetObjectHandle('BackLeftWheelJoint', client.simxServiceCall())
-        _, self.back_right_wheel = self.client.simxGetObjectHandle('BackRightWheelJoint', client.simxServiceCall())
-        _, self.camera = self.client.simxGetObjectHandle('CarVision1', client.simxServiceCall())
-        _, self.body = self.client.simxGetObjectHandle('CarBody', client.simxServiceCall())
+        _, self.front_left_wheel = self.client.simxGetObjectHandle('FLSteerJoint', client.simxServiceCall())
+        _, self.front_right_wheel = self.client.simxGetObjectHandle('FRSteerJoint', client.simxServiceCall())
+        _, self.back_left_wheel = self.client.simxGetObjectHandle('BLWheelJoint', client.simxServiceCall())
+        _, self.back_right_wheel = self.client.simxGetObjectHandle('BRWheelJoint', client.simxServiceCall())
+        _, self.camera = self.client.simxGetObjectHandle('CarVision', client.simxServiceCall())
 
         self.width = util.calc_distance(self.client, self.front_left_wheel, self.front_right_wheel)
         self.length = util.calc_distance(self.client, self.front_left_wheel, self.back_left_wheel)
