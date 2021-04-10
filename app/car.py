@@ -9,10 +9,14 @@ class Car:
     def __init__(self, client: RemoteApiClient):
         self.client = client
 
+        _, self.compass_reference = self.client.simxGetObjectHandle('CompassReference', client.simxServiceCall())
+        _, self.compass = self.client.simxGetObjectHandle('Compass', client.simxServiceCall())
+
         _, self.fl_wheel = self.client.simxGetObjectHandle('FLSteerJoint', client.simxServiceCall())
         _, self.fr_wheel = self.client.simxGetObjectHandle('FRSteerJoint', client.simxServiceCall())
         _, self.bl_wheel = self.client.simxGetObjectHandle('BLWheelJoint', client.simxServiceCall())
         _, self.br_wheel = self.client.simxGetObjectHandle('BRWheelJoint', client.simxServiceCall())
+
         _, self.camera = self.client.simxGetObjectHandle('CarVision', client.simxServiceCall())
 
         self.width = util.calc_distance(self.client, self.fl_wheel, self.fr_wheel)
@@ -76,3 +80,10 @@ class Car:
 
     def disable_indicators(self):
         self.client.simxSetIntSignal("IndicatorsLights", 0, self.client.simxServiceCall())
+
+    # Zwraca orientację samochodu w stopniach (-180, 180)
+    def get_orientation(self):
+        _, orient = self.client.simxGetObjectOrientation(self.compass, self.compass_reference, self.client.simxServiceCall())
+        gamma = util.rad2deg(orient[2])
+        return gamma
+

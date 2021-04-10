@@ -5,6 +5,10 @@ def deg2rad(degrees):
     return degrees * math.pi / 180
 
 
+def rad2deg(radians):
+    return radians * 180 / math.pi
+
+
 def calc_vectors_distance(vector1, vector2):
     return math.sqrt(sum([(v1-v2)**2 for v1, v2 in zip(vector1, vector2)]))
 
