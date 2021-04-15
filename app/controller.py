@@ -1,57 +1,30 @@
-import time
+import math
+import util
 
 
 class Controller:
 
-    def __init__(self, simulation, car):
-        self.simulation = simulation
+    def __init__(self, car):
         self.car = car
 
     def start(self):
-        self.car.set_wheels_by_radius(0)
-        self.car.set_force(60)
-        self.car.set_running_lights(True)
-        self.loop()
+        target = [20.75, -23.925]
 
-    def loop(self):
         while True:
-            self.update()
+            self.car.refresh()
+            diff = [self.car.gps[0]-target[0], self.car.gps[1]-target[1]]
+            target_angle = util.rad2deg(math.atan2(diff[1], diff[0]) + math.pi)
+            car_angle = util.rad2deg(self.car.orient + math.pi)
+            diff_angle = car_angle - target_angle
 
-    def update(self):
-        # Pijany kierowca
-        self.car.set_velocity(10)
+            if diff_angle > 180:
+                diff_angle = 180 - diff_angle
+            if diff_angle < -180:
+                diff_angle = 360 + diff_angle
 
-        self.car.set_wheels_by_angle(0)
-        time.sleep(3)
+            diff_angle = min(20, diff_angle)
+            diff_angle = max(-20, diff_angle)
 
-        self.car.set_wheels_by_radius(1)
-        self.car.enable_right_indicators()
-        time.sleep(3)
-
-        self.car.set_wheels_by_radius(-1)
-        self.car.enable_left_indicators()
-        time.sleep(3)
-
-        self.car.set_velocity(0)
-        self.car.set_wheels_by_angle(0)
-        self.car.disable_indicators()
-        self.car.set_stop_lights(True)
-        time.sleep(1)
-
-        self.car.set_stop_lights(False)
-        time.sleep(1)
-
-        self.car.set_reversing_lights(True)
-        self.car.set_velocity(-10)
-        time.sleep(3)
-
-        self.car.set_wheels_by_radius(1)
-        self.car.enable_right_indicators()
-        time.sleep(3)
-
-        self.car.set_wheels_by_radius(-1)
-        self.car.enable_left_indicators()
-        time.sleep(3)
-
-        self.car.disable_indicators()
-        self.car.set_reversing_lights(False)
+            self.car.target_velocity = 20
+            self.car.set_wheels_by_angle(diff_angle)
+            self.car.apply()

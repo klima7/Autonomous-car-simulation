@@ -219,7 +219,15 @@ class RemoteApiClient:
         funcName = 'CallScriptFunction'
         return self._handleFunction(funcName,reqArgs,topic)
 
-        
+    def simxGetPathLength(self, pathHandle, topic):
+        reqArgs = [pathHandle]
+        return self._handleFunction('simGetPathLength', reqArgs, topic)
+    def simxGetPositionOnPath(self, pathHandle, position, topic):
+        reqArgs =[pathHandle, position]
+        return self._handleFunction('simGetPositionOnPath', reqArgs, topic)
+    def simxGetOrientationOnPath(self, pathHandle, position, topic):
+        reqArgs =[pathHandle, position]
+        return self._handleFunction('simGetOrientationOnPath', reqArgs, topic)
     def simxGetObjectHandle(self,objectName,topic):
         reqArgs = [objectName]
         return self._handleFunction('GetObjectHandle',reqArgs,topic)

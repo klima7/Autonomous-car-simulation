@@ -3,4 +3,4 @@
 __pycache__/
 .ipynb_checkpoints/
 /tests
-app/venv/
+app2/venv/
