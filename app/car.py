@@ -23,16 +23,22 @@ class Car:
         self.curr_right_angle = None
         self.target_right_angle = None
 
+        self.target_point = None
+        self.cur_path = None
+
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
+        # print(data)
         self.gps = data[0]
         self.orient = data[1][0]
         self.curr_velocity, self.target_velocity = data[2][0:2]
         self.curr_left_angle, self.curr_right_angle = data[2][2]
         self.target_left_angle, self.target_right_angle = data[2][3]
+        self.target_point = data[3][0]
+        self.cur_path = data[3][1]
 
     def apply(self):
-        data = [self.target_velocity, self.target_left_angle, self.target_right_angle]
+        data = [[self.target_velocity, self.target_left_angle, self.target_right_angle], self.cur_path]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxDefaultPublisher())
 
     # positive radius - right, negative - left
@@ -66,8 +72,8 @@ class Car:
         if diff_angle < -180:
             diff_angle = 360 + diff_angle
 
-        diff_angle = min(20, diff_angle)
-        diff_angle = max(-20, diff_angle)
+        diff_angle = min(30, diff_angle)
+        diff_angle = max(-30, diff_angle)
 
         self.target_velocity = 20
         self.set_wheels_by_angle(diff_angle)
