@@ -52,3 +52,22 @@ class Car:
     def set_wheels_by_angle(self, angle):
         radius = self.length / math.tan(util.deg2rad(angle)) if angle != 0 else math.inf
         self.set_wheels_by_radius(radius)
+
+    def navigate(self, target):
+        diff = [self.gps[0] - target[0], self.gps[1] - target[1]]
+        target_angle = util.rad2deg(math.atan2(diff[1], diff[0]) + math.pi)
+        car_angle = util.rad2deg(self.orient + math.pi)
+        diff_angle = car_angle - target_angle
+
+        print(target_angle, car_angle)
+
+        if diff_angle > 180:
+            diff_angle = 180 - diff_angle
+        if diff_angle < -180:
+            diff_angle = 360 + diff_angle
+
+        diff_angle = min(20, diff_angle)
+        diff_angle = max(-20, diff_angle)
+
+        self.target_velocity = 20
+        self.set_wheels_by_angle(diff_angle)
