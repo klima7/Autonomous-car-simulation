@@ -39,7 +39,7 @@ class Car:
 
     def apply(self):
         data = [[self.target_velocity, self.target_left_angle, self.target_right_angle], self.cur_path]
-        self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxDefaultPublisher())
+        self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
 
     # positive radius - right, negative - left
     def set_wheels_by_radius(self, radius):
@@ -64,8 +64,6 @@ class Car:
         target_angle = util.rad2deg(math.atan2(diff[1], diff[0]) + math.pi)
         car_angle = util.rad2deg(self.orient + math.pi)
         diff_angle = car_angle - target_angle
-
-        print(target_angle, car_angle)
 
         if diff_angle > 180:
             diff_angle = 180 - diff_angle
