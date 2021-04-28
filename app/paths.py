@@ -14,7 +14,7 @@ class Path:
 
 class PathsManager:
 
-    PARENT_NAME = 'RoadPaths'
+    PARENT_NAME = 'Paths'
     ACCEPTABLE_POINTS_DISTANCE = 0.001
 
     def __init__(self, client: RemoteApiClient):
@@ -36,7 +36,7 @@ class PathsManager:
 
     def _fetch_paths(self):
         _, parent_handle = self._client.simxGetObjectHandle(PathsManager.PARENT_NAME, self._client.simxServiceCall())
-        _, paths_handles = self._client.simxGetObjectsInTree(parent_handle, "sim.handle_all", 1, self._client.simxServiceCall())
+        _, paths_handles = self._client.simxGetObjectsInTree(parent_handle, "sim.object_path_type", 1, self._client.simxServiceCall())
 
         paths = []
 
