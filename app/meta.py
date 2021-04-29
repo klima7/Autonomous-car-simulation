@@ -24,6 +24,8 @@ class Path:
 
 class Roundabout:
 
+    RADIUS = 2.2
+
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
         self.center = Point(*raw_meta[1])
