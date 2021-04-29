@@ -1,25 +1,12 @@
-import math
-
-
-class Point:
-
-    def __init__(self, raw_meta):
-        self.x = raw_meta[0]
-        self.y = raw_meta[1]
-
-    def __repr__(self):
-        return f'({self.x:.2f},{self.y:.2f})'
-
-    def get_distance(self, point):
-        return math.sqrt((self.x-point.x)**2 + (self.y-point.y)**2)
+from util import Point
 
 
 class Path:
 
     def __init__(self, raw_meta, structure):
         self.handle = raw_meta[0]
-        self.start = Point(raw_meta[1])
-        self.end = Point(raw_meta[2])
+        self.start = Point(*raw_meta[1])
+        self.end = Point(*raw_meta[2])
         self.structure = structure
         self.successors = None
 
