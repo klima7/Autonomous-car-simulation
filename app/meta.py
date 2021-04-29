@@ -26,7 +26,7 @@ class Roundabout:
 
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
-        self.center = Point(raw_meta[1])
+        self.center = Point(*raw_meta[1])
         self.paths = Path.create_list(raw_meta[2], self)
 
     def __repr__(self):
