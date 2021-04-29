@@ -1,21 +1,20 @@
-import time
-
-from paths import *
-
-
 class Controller:
 
-    def __init__(self, car):
+    def __init__(self, car, mm):
         self.car = car
-        self.pm = PathsManager(self.car._client)
+        self.mm = mm
 
     def start(self):
-        path = Path(self.car._client, 1071)
+
+        # Hardcoded starting point
+        path = [p for p in self.mm.paths if p.handle == 1071][0]
+        print(path, path.structure)
 
         while True:
             self.car.refresh()
             self.car.navigate(self.car.target_point)
-            if self.car.target_point == path.end:
-                self.car.cur_path = self.pm.find_subsequent_paths(path)[0].handle
-                path = Path(self.car._client, self.car.cur_path)
+            if self.car.target_point[0] == path.end.x and self.car.target_point[1] == path.end.y:
+                path = path.successors[0]
+                self.car.cur_path = path.handle
+                print(path, path.structure)
             self.car.apply()
