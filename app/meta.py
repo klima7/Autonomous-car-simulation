@@ -7,6 +7,7 @@ class Path:
         self.handle = raw_meta[0]
         self.start = Point(*raw_meta[1])
         self.end = Point(*raw_meta[2])
+        self.length = raw_meta[3]
         self.structure = structure
         self.successors = None
 
@@ -19,7 +20,7 @@ class Path:
         return paths_list
 
     def __repr__(self):
-        return f'Path({self.start} -> {self.end}, successors={len(self.successors)})'
+        return f'Path({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)})'
 
 
 class Roundabout:
