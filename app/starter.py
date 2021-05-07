@@ -3,6 +3,7 @@ from car import Car
 from simulation import Simulation
 from controller import Controller
 from meta import MetaManager
+from path_finding import PathFinder
 
 CLIENT_NAME = 'Python_client'
 CHANNEL_NAME = 'b0RemoteApi'
