@@ -76,7 +76,8 @@ class PathFinder:
         r = self.shortest
         while True:
             if r.prev is None:
-                return arr.reverse()
+                arr.reverse()
+                return arr
 
             arr.append(r.this)
             r = r.prev
