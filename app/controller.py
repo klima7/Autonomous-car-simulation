@@ -8,10 +8,12 @@ class Controller:
         self.mm = mm
 
     def start(self):
+        self.car.refresh()
+        self.car.cur_path = self.car.closest_path
+        self.car.apply()
 
-        # Hardcoded start and end point
-        start = [p for p in self.mm.paths if p.handle == 1071][0]
-        end = [p for p in self.mm.paths if p.handle == 1266][0]
+        start = self.mm.get_path_by_id(self.car.closest_path)
+        end = self.mm.get_path_by_id(1266)
 
         navigator = PathFinder()
         paths_ahead = navigator.find_path(start, end)
@@ -23,8 +25,11 @@ class Controller:
             self.car.refresh()
             self.car.navigate(self.car.target_point)
             if self.car.target_point[0] == path.end.x and self.car.target_point[1] == path.end.y:
-                path = paths_ahead[0]
-                paths_ahead = paths_ahead[1:]
-                self.car.cur_path = path.handle
-                print(path, path.structure)
+                if not paths_ahead:
+                    self.car.target_velocity = 0
+                else:
+                    path = paths_ahead[0]
+                    paths_ahead = paths_ahead[1:]
+                    self.car.cur_path = path.handle
+                    print(path, path.structure)
             self.car.apply()

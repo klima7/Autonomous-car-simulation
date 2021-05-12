@@ -74,6 +74,16 @@ class MetaManager:
         self._fetch_meta()
         self._connect_paths()
 
+    def get_path_by_id(self, id):
+        matching = [p for p in self.paths if p.handle == id]
+        return matching[0] if matching else None
+
+    def get_structure_by_name(self, name):
+        structures = [*self.roundabouts, *self.streets, *self.crossings]
+        for structure in structures:
+            if structure.name == name:
+                return structure
+
     def _fetch_meta(self):
         _, *meta = self._client.simxCallScriptFunction("get_meta@Meta", "sim.scripttype_childscript", [], self._client.simxServiceCall())
         roundabouts_meta, streets_meta, crossings_meta = meta[0]

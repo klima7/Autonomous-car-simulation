@@ -26,9 +26,10 @@ class Car:
         self.target_point = None
         self.cur_path = None
 
+        self.closest_path = None
+
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
-        # print(data)
         self.gps = data[0]
         self.orient = data[1][0]
         self.curr_velocity, self.target_velocity = data[2][0:2]
@@ -36,6 +37,7 @@ class Car:
         self.target_left_angle, self.target_right_angle = data[2][3]
         self.target_point = data[3][0]
         self.cur_path = data[3][1]
+        self.closest_path = data[4]
 
     def apply(self):
         data = [[self.target_velocity, self.target_left_angle, self.target_right_angle], self.cur_path]
