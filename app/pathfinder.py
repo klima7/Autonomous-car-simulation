@@ -10,6 +10,7 @@ class PathFinder:
         routes = PathFinder._find_routes(start, end)
         shortest = PathFinder._find_shortest_route(routes)
         shortest_way = PathFinder._create_shortest_way(shortest)
+        shortest_way = [start, *shortest_way]
         return shortest_way
 
     @staticmethod

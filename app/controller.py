@@ -1,4 +1,5 @@
 from pathfinder import PathFinder
+from pathfollower import PathFollower
 
 
 class Controller:
@@ -13,23 +14,13 @@ class Controller:
         self.car.apply()
 
         start = self.mm.get_path_by_id(self.car.closest_path)
-        end = self.mm.get_path_by_id(1266)
+        end = self.mm.get_structure_by_name("RoundaboutPaths0").paths[0]
 
-        navigator = PathFinder()
-        paths_ahead = navigator.find_path(start, end)
-
-        path = start
-        print(path, path.structure)
+        finder = PathFinder()
+        path = finder.find_path(start, end)
+        follower = PathFollower(self.car, path)
 
         while True:
             self.car.refresh()
-            self.car.navigate(self.car.target_point)
-            if self.car.target_point[0] == path.end.x and self.car.target_point[1] == path.end.y:
-                if not paths_ahead:
-                    self.car.target_velocity = 0
-                else:
-                    path = paths_ahead[0]
-                    paths_ahead = paths_ahead[1:]
-                    self.car.cur_path = path.handle
-                    print(path, path.structure)
+            follower.follow()
             self.car.apply()
