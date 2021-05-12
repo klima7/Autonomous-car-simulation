@@ -1,5 +1,5 @@
-from pathfinder import PathFinder
-from pathfollower import PathFollower
+from routing import RouteFinder
+from driving import Driver
 
 
 class Controller:
@@ -13,14 +13,18 @@ class Controller:
         self.car.cur_path = self.car.closest_path
         self.car.apply()
 
-        start = self.mm.get_path_by_id(self.car.closest_path)
-        end = self.mm.get_structure_by_name("RoundaboutPaths0").paths[0]
+        pos_start = self.mm.get_path_by_id(self.car.closest_path)
+        pos_1 = self.mm.get_structure_by_name("RoundaboutPaths0").paths[0]
 
-        finder = PathFinder()
-        path = finder.find_path(start, end)
-        follower = PathFollower(self.car, path)
+        router = RouteFinder()
+        route0 = router.find_route(pos_start, pos_1)
+        route1 = router.find_route(pos_1, pos_start)
+
+        driver = Driver(self.car)
+        driver.add_route(route0)
+        driver.add_route(route1)
 
         while True:
             self.car.refresh()
-            follower.follow()
+            driver.drive()
             self.car.apply()

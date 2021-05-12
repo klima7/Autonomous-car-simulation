@@ -1,4 +1,7 @@
-class PathFinder:
+from driving import Route
+
+
+class RouteFinder:
 
     class PathWrapper:
         def __init__(self, path):
@@ -6,16 +9,16 @@ class PathFinder:
             self.prev = None
 
     @staticmethod
-    def find_path(start, end):
-        routes = PathFinder._find_routes(start, end)
-        shortest = PathFinder._find_shortest_route(routes)
-        shortest_way = PathFinder._create_shortest_way(shortest)
+    def find_route(start, end):
+        routes = RouteFinder._find_routes(start, end)
+        shortest = RouteFinder._find_shortest_route(routes)
+        shortest_way = RouteFinder._create_shortest_way(shortest)
         shortest_way = [start, *shortest_way]
-        return shortest_way
+        return Route(shortest_way)
 
     @staticmethod
     def _find_routes(start, end):
-        start = PathFinder.PathWrapper(start)
+        start = RouteFinder.PathWrapper(start)
         end = end
 
         open_list = [start]
@@ -29,10 +32,10 @@ class PathFinder:
                 continue
             closed_list.append(x)
             for neighbor in x.path.successors:
-                if PathFinder._check_if_closed(neighbor, closed_list):
+                if RouteFinder._check_if_closed(neighbor, closed_list):
                     continue
                 else:
-                    t = PathFinder.PathWrapper(neighbor)
+                    t = RouteFinder.PathWrapper(neighbor)
                     t.prev = x
                     open_list.append(t)
         return routes
@@ -56,10 +59,10 @@ class PathFinder:
 
     @staticmethod
     def _find_shortest_route(routes):
-        min_length = PathFinder._calc_route_length(routes[0])
+        min_length = RouteFinder._calc_route_length(routes[0])
         min_route = routes[0]
         for route in routes:
-            length = PathFinder._calc_route_length(route)
+            length = RouteFinder._calc_route_length(route)
             if length < min_length:
                 min_length = length
                 min_route = route

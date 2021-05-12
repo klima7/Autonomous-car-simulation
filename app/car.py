@@ -25,6 +25,7 @@ class Car:
 
         self.target_point = None
         self.cur_path = None
+        self.cur_path_offset = None
 
         self.closest_path = None
 
@@ -37,6 +38,7 @@ class Car:
         self.target_left_angle, self.target_right_angle = data[2][3]
         self.target_point = data[3][0]
         self.cur_path = data[3][1]
+        self.cur_path_offset = data[3][2]
         self.closest_path = data[4]
 
     def apply(self):
@@ -75,5 +77,4 @@ class Car:
         diff_angle = min(30, diff_angle)
         diff_angle = max(-30, diff_angle)
 
-        self.target_velocity = 20
         self.set_wheels_by_angle(diff_angle)
