@@ -1,6 +1,7 @@
+import math
 from typing import *
 from copy import copy
-from meta import Path
+from meta import Path, Crossing, Roundabout
 
 
 class RoutePosition:
@@ -37,6 +38,9 @@ class Route:
     def __iadd__(self, other: 'Route'):
         return self + other
 
+    def __len__(self):
+        return len(self.paths)
+
     def __repr__(self):
         text = f'Route('
         for path in self.paths:
@@ -45,9 +49,13 @@ class Route:
         return text
 
     def get_distance_between(self, start: RoutePosition, end: RoutePosition):
+        if start is None or end is None:
+            return None
         return self.get_distance(end) - self.get_distance(start)
 
     def get_distance(self, end: RoutePosition):
+        if end is None:
+            return None
         distance = 0
         for i in range(end.ordinal):
             distance += self.paths[i].length
@@ -84,11 +92,36 @@ class Driver:
         self.route += route
 
     def drive(self):
-        self.position.offset = self.car.cur_path_offset
-        self.car.target_velocity = 20
-
         self.car.navigate(self.car.target_point)
+        self.adjust_speed()
+        self.update_position()
+
+    def adjust_speed(self):
+
+        def should_slow_down(path):
+            return isinstance(path.structure, Crossing) or isinstance(path.structure, Roundabout)
+
+        self.car.target_velocity = 25
+
+        next_crossing_pos = self.route.get_next_position(self.position, should_slow_down)
+        next_crossing_distance = self.route.get_distance_between(self.position, next_crossing_pos)
+        next_crossing_distance = math.inf if next_crossing_distance is None else next_crossing_distance + 0.4
+
+        prev_crossing_pos = self.route.get_prev_position(self.position, should_slow_down)
+        prev_crossing_distance = self.route.get_distance_between(prev_crossing_pos, self.position)
+        prev_crossing_distance = math.inf if prev_crossing_distance is None else max(0, prev_crossing_distance - 0.4)
+
+        distance = min(next_crossing_distance, prev_crossing_distance)
+
+        if distance < 1.5:
+            self.car.target_velocity = 10
+
+    def update_position(self):
+        self.position.offset = self.car.cur_path_offset
         if self.position.offset == 1:
-            self.position += 1
-            self.car.cur_path = self.route[self.position].handle
+            if self.position.ordinal + 1 >= len(self.route):
+                self.car.target_velocity = 0
+            else:
+                self.position += 1
+                self.car.cur_path = self.route[self.position].handle
 
