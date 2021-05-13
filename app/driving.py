@@ -93,10 +93,10 @@ class Driver:
 
     def drive(self):
         self.car.navigate(self.car.target_point)
-        self.adjust_speed()
-        self.update_position()
+        self._adjust_speed()
+        self._update_position()
 
-    def adjust_speed(self):
+    def _adjust_speed(self):
 
         def should_slow_down(path):
             return isinstance(path.structure, Crossing) or isinstance(path.structure, Roundabout)
@@ -116,7 +116,7 @@ class Driver:
         if distance < 1.5:
             self.car.target_velocity = 10
 
-    def update_position(self):
+    def _update_position(self):
         self.position.offset = self.car.cur_path_offset
         if self.position.offset == 1:
             if self.position.ordinal + 1 >= len(self.route):
