@@ -1,4 +1,39 @@
 from util import Point
+from enum import Enum
+
+
+class Sign:
+
+    class Type(Enum):
+        STOP = 'SignStop'
+        WALKWAY = 'SignWalkway'
+        ROUNDABOUT = 'SignRoundabout'
+        PARKING = 'SignParking'
+        LIMIT = 'SignLimit'
+        ONEWAY = 'SignOneWay'
+        DEADEND = 'SignDeadEnd'
+
+        @classmethod
+        def from_text(cls, text):
+            for sign_type in list(cls):
+                if text.startswith(sign_type.value):
+                    return sign_type
+            return None
+
+    def __init__(self, raw_meta):
+        self.type = Sign.Type.from_text(raw_meta[0].decode("utf-8"))
+        self.position = raw_meta[1]
+
+    @staticmethod
+    def create_list(raw_meta_list):
+        signs_list = []
+        for raw_meta in raw_meta_list:
+            sign = Sign(raw_meta)
+            signs_list.append(sign)
+        return signs_list
+
+    def __repr__(self):
+        return f'Sign(type={self.type.name}, position={self.position:.2f})'
 
 
 class Path:
@@ -8,6 +43,7 @@ class Path:
         self.start = Point(*raw_meta[1])
         self.end = Point(*raw_meta[2])
         self.length = raw_meta[3]
+        self.signs = Sign.create_list(raw_meta[4])
         self.structure = structure
         self.successors = None
 
@@ -20,7 +56,7 @@ class Path:
         return paths_list
 
     def __repr__(self):
-        return f'Path({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)})'
+        return f'Path({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
 
 
 class Roundabout:
