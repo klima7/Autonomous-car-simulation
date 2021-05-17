@@ -101,7 +101,7 @@ class Driver:
         def should_slow_down(path):
             return isinstance(path.structure, Crossing) or isinstance(path.structure, Roundabout)
 
-        self.car.target_velocity = 25
+        self.car.steering.target_velocity = 25
 
         next_crossing_pos = self.route.get_next_position(self.position, should_slow_down)
         next_crossing_distance = self.route.get_distance_between(self.position, next_crossing_pos)
@@ -114,13 +114,13 @@ class Driver:
         distance = min(next_crossing_distance, prev_crossing_distance)
 
         if distance < 1.5:
-            self.car.target_velocity = 10
+            self.car.steering.target_velocity = 10
 
     def _update_position(self):
         self.position.offset = self.car.cur_path_offset
         if self.position.offset == 1:
             if self.position.ordinal + 1 >= len(self.route):
-                self.car.target_velocity = 0
+                self.car.steering.target_velocity = 0
             else:
                 self.position += 1
                 self.car.cur_path = self.route[self.position].handle
