@@ -92,7 +92,7 @@ class Driver:
         self.route += route
 
     def drive(self):
-        self.car.navigate(self.car.target_point)
+        self.car.navigate(self.car.follower.target_point)
         self._adjust_speed()
         self._update_position()
 
@@ -117,11 +117,11 @@ class Driver:
             self.car.steering.target_velocity = 10
 
     def _update_position(self):
-        self.position.offset = self.car.cur_path_offset
+        self.position.offset = self.car.follower.cur_path_offset
         if self.position.offset == 1:
             if self.position.ordinal + 1 >= len(self.route):
                 self.car.steering.target_velocity = 0
             else:
                 self.position += 1
-                self.car.cur_path = self.route[self.position].handle
+                self.car.follower.cur_path = self.route[self.position].handle
 

@@ -10,10 +10,10 @@ class Controller:
 
     def start(self):
         self.car.refresh()
-        self.car.cur_path = self.car.closest_path
+        self.car.follower.cur_path = self.car.follower.closest_path
         self.car.apply()
 
-        pos_start = self.mm.get_path_by_id(self.car.closest_path)
+        pos_start = self.mm.get_path_by_id(self.car.follower.closest_path)
         pos_1 = self.mm.get_structure_by_name("RoundaboutPaths0").paths[0]
 
         router = RouteFinder()

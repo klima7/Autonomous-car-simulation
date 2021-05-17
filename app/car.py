@@ -30,6 +30,8 @@ class Lights:
 
 class AckermanSteering:
 
+    TURNING_ANGLE = 30
+
     def __init__(self):
         self.curr_velocity = 0
         self.target_velocity = 0
@@ -67,6 +69,24 @@ class AckermanSteering:
         self.set_wheels_by_radius(radius)
 
 
+class Follower:
+
+    def __init__(self):
+        self.target_point = None
+        self.cur_path = None
+        self.cur_path_offset = None
+        self.closest_path = None
+
+    def get_vector(self):
+        return self.cur_path
+
+    def set_vector(self, vector):
+        self.target_point = vector[0]
+        self.cur_path = vector[1]
+        self.cur_path_offset = vector[2]
+        self.closest_path = vector[3]
+
+
 class Car:
     
     LENGTH = 0.316
@@ -78,27 +98,20 @@ class Car:
         self.gps = None
         self.orient = None
 
-        self.target_point = None
-        self.cur_path = None
-        self.cur_path_offset = None
-        self.closest_path = None
-
+        self.follower = Follower()
         self.steering = AckermanSteering()
         self.lights = Lights()
 
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
         self.gps = data[0]
-        self.orient = data[1][0]
+        self.orient = data[1]
         self.steering.set_vector(data[2])
-        self.target_point = data[3][0]
-        self.cur_path = data[3][1]
-        self.cur_path_offset = data[3][2]
-        self.closest_path = data[4]
-        self.lights.set_vector(data[5])
+        self.follower.set_vector(data[3])
+        self.lights.set_vector(data[4])
 
     def apply(self):
-        data = [self.steering.get_vector(), self.cur_path, self.lights.get_vector()]
+        data = [self.steering.get_vector(), self.follower.get_vector(), self.lights.get_vector()]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
 
     def navigate(self, target):
@@ -112,7 +125,7 @@ class Car:
         if diff_angle < -180:
             diff_angle = 360 + diff_angle
 
-        diff_angle = min(30, diff_angle)
-        diff_angle = max(-30, diff_angle)
+        diff_angle = min(self.steering.TURNING_ANGLE, diff_angle)
+        diff_angle = max(-self.steering.TURNING_ANGLE, diff_angle)
 
         self.steering.set_wheels_by_angle(diff_angle)
