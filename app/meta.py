@@ -46,7 +46,8 @@ class Path:
         self.length = raw_meta[3]
         self.signs = Sign.create_list(raw_meta[4])
         self.structure = structure
-        self.successors = None
+        self.successors = []
+        self.predecessors = []
 
     @staticmethod
     def create_list(raw_meta_list, structure):
@@ -55,6 +56,17 @@ class Path:
             path = Path(raw_meta, structure)
             paths_list.append(path)
         return paths_list
+
+    @staticmethod
+    def connect(paths):
+        for p1 in paths:
+            for p2 in paths:
+                if p2 is p1:
+                    continue
+                if p1.end.get_distance(p2.start) < MetaManager.ACCEPTABLE_POINTS_DISTANCE:
+                    p1.successors.append(p2)
+                    p2.predecessors.append(p1)
+        return paths
 
     def __repr__(self):
         return f'Path({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
@@ -109,7 +121,7 @@ class MetaManager:
         self.paths = []
 
         self._fetch_meta()
-        self._connect_paths()
+        Path.connect(self.paths)
 
     def get_path_by_id(self, id):
         matching = [p for p in self.paths if p.handle == id]
@@ -139,13 +151,3 @@ class MetaManager:
             crossing = Crossing(crossing_meta)
             self.crossings.append(crossing)
             self.paths.extend(crossing.paths)
-
-    def _connect_paths(self):
-        for p1 in self.paths:
-            p1_successors = []
-            for p2 in self.paths:
-                if p2 is p1:
-                    continue
-                if p1.end.get_distance(p2.start) < MetaManager.ACCEPTABLE_POINTS_DISTANCE:
-                    p1_successors.append(p2)
-            p1.successors = p1_successors
