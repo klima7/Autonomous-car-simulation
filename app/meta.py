@@ -22,7 +22,8 @@ class Sign:
 
     def __init__(self, raw_meta):
         self.type = Sign.Type.from_text(raw_meta[0].decode("utf-8"))
-        self.position = raw_meta[1]
+        self.offset = raw_meta[1]
+        self.position = Point(*raw_meta[2])
 
     @staticmethod
     def create_list(raw_meta_list):
@@ -33,7 +34,7 @@ class Sign:
         return signs_list
 
     def __repr__(self):
-        return f'Sign(type={self.type.name}, position={self.position:.2f})'
+        return f'Sign(type={self.type.name}, offset={self.offset:.2f}, position={self.position})'
 
 
 class Path:
