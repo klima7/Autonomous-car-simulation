@@ -124,5 +124,4 @@ class Driver:
             else:
                 self.position += 1
                 self.car.cur_path = self.route[self.position].handle
-                print(self.route[self.position])
 

@@ -1,6 +1,31 @@
 import math
 import util
+from enum import Enum
 from api.b0RemoteApi import RemoteApiClient
+
+
+class Lights:
+
+    class Indicators(Enum):
+        DISABLED = 0
+        LEFT = 1
+        RIGHT = 2
+        HAZARD_LIGHTS = 3
+
+    def __init__(self):
+        self.indicators = Lights.Indicators.DISABLED
+        self.stop = False
+        self.running = False
+        self.reverse = False
+
+    def get_vector(self):
+        return [self.indicators.value, int(self.stop), int(self.running), int(self.reverse)]
+
+    def set_vector(self, vector):
+        self.indicators = Lights.Indicators(vector[0])
+        self.stop = bool(vector[1])
+        self.running = bool(vector[2])
+        self.reverse = bool(vector[3])
 
 
 class Car:
@@ -29,6 +54,8 @@ class Car:
 
         self.closest_path = None
 
+        self.lights = Lights()
+
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
         self.gps = data[0]
@@ -40,9 +67,10 @@ class Car:
         self.cur_path = data[3][1]
         self.cur_path_offset = data[3][2]
         self.closest_path = data[4]
+        self.lights.set_vector(data[5])
 
     def apply(self):
-        data = [[self.target_velocity, self.target_left_angle, self.target_right_angle], self.cur_path]
+        data = [[self.target_velocity, self.target_left_angle, self.target_right_angle], self.cur_path, self.lights.get_vector()]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
 
     # positive radius - right, negative - left
