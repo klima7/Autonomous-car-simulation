@@ -13,16 +13,11 @@ class Controller:
         self.car.follower.cur_path = self.car.follower.closest_path
         self.car.apply()
 
-        pos_start = self.mm.get_path_by_id(self.car.follower.closest_path)
-        pos_1 = self.mm.get_structure_by_name("RoundaboutPaths0").paths[0]
-
-        router = RouteFinder()
-        route0 = router.find_route(pos_start, pos_1)
-        route1 = router.find_route(pos_1, pos_start)
-
-        driver = Driver(self.car)
-        driver.add_route(route0)
-        driver.add_route(route1)
+        driver = Driver(self.car, self.mm)
+        driver.add_target('RoundaboutPaths0')
+        driver.add_target('RoundaboutPaths1')
+        driver.add_target('RoundaboutPaths2')
+        # driver.add_target(pos_2)
 
         while True:
             self.car.refresh()
