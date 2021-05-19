@@ -14,10 +14,10 @@ class Controller:
         self.car.apply()
 
         driver = Driver(self.car, self.mm)
-        driver.add_target('RoundaboutPaths0')
-        driver.add_target('RoundaboutPaths1')
         driver.add_target('RoundaboutPaths2')
-        # driver.add_target(pos_2)
+        driver.add_target('RoundaboutPaths1')
+        driver.add_target('RoundaboutPaths0')
+        driver.add_target('RoundaboutPaths3')
 
         while True:
             self.car.refresh()

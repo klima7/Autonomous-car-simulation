@@ -79,6 +79,15 @@ class Route:
             pos.offset = 1
         return None
 
+    def get_angle(self, pos: RoutePosition):
+        if pos.ordinal<1 or pos.ordinal+1 >= len(self.paths):
+            print('error', pos.ordinal)
+            return 0
+
+        prev = self.paths[pos.ordinal-1]
+        next = self.paths[pos.ordinal+1]
+        return Path.get_angle_between_paths(prev, next)
+
 
 class RouteFinder:
 

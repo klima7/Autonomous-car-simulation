@@ -1,3 +1,5 @@
+import math
+
 from util import Point
 from enum import Enum
 
@@ -67,6 +69,30 @@ class Path:
                     p1.successors.append(p2)
                     p2.predecessors.append(p1)
         return paths
+
+    def is_roundabout_entrance(self):
+        return isinstance(self.structure, Roundabout) and \
+               len(self.predecessors) == 1 and isinstance(self.predecessors[0].structure, Street) and \
+               len(self.successors) == 1 and isinstance(self.successors[0].structure, Roundabout)
+
+    def is_roundabout_exit(self):
+        return isinstance(self.structure, Roundabout) and \
+               len(self.successors) == 1 and isinstance(self.successors[0].structure, Street) and \
+               len(self.predecessors) == 1 and isinstance(self.predecessors[0].structure, Roundabout)
+
+    @staticmethod
+    def get_angle_between_paths(a, b):
+        xa = a.end.x - a.start.x
+        ya = a.end.y - a.start.y
+        xb = b.end.x - b.start.x
+        yb = b.end.y - b.start.y
+
+        angle = math.atan2(yb, xb) - math.atan2(ya, xa)
+        if angle > math.pi:
+            angle -= 2 * math.pi
+        if angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
 
     def __repr__(self):
         return f'Path({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
