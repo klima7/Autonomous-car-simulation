@@ -8,6 +8,10 @@ from routing import RoutePosition, RouteFinder
 
 class Driver:
 
+    NORMAL_SPEED = 20
+    WALKWAY_SPEED = 8
+    LIMITED_SPEED = 10
+
     def __init__(self, car, mm):
         self.car = car
         self.mm = mm
@@ -19,6 +23,7 @@ class Driver:
 
         self.stop_time = 0
         self.speedup_position = None
+        self.speed_limit_street = None
 
     def add_target(self, target):
         self.targets.append(target)
@@ -55,14 +60,22 @@ class Driver:
 
     def update_signs(self):
         signs = self.route.get_signs_between(self.prev_position, self.position)
+
         for sign in signs:
             if sign.type == Sign.Type.STOP:
                 self.stop_time = time()
             if sign.type == Sign.Type.WALKWAY:
                 self.speedup_position = self.route.add_distance_to_position(self.position, 2)[0]
+            if sign.type == Sign.Type.LIMIT:
+                self.speed_limit_street = self.route[self.position].structure
+
+        if self.speed_limit_street is not None:
+            self.car.steering.target_velocity = Driver.LIMITED_SPEED
+            if self.speed_limit_street != self.route[self.position].structure:
+                self.speed_limit_street = None
 
         if self.speedup_position is not None:
-            self.car.steering.target_velocity = 8
+            self.car.steering.target_velocity = Driver.WALKWAY_SPEED
             if self.position > self.speedup_position:
                 self.speedup_position = None
 
@@ -74,7 +87,7 @@ class Driver:
         if self.route is None:
             self.car.steering.target_velocity = 0
         else:
-            self.car.steering.target_velocity = 22
+            self.car.steering.target_velocity = Driver.NORMAL_SPEED
 
     def update_route(self):
         if self.route is None:
