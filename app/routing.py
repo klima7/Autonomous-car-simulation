@@ -19,6 +19,12 @@ class RoutePosition:
     def __repr__(self):
         return f'RoutePosition({self.ordinal}, {self.offset})'
 
+    def __eq__(self, other: 'RoutePosition'):
+        return self.ordinal == other.ordinal and self.ordinal == other.offset
+
+    def __lt__(self, other: 'RoutePosition'):
+        return self.ordinal < other.ordinal or self.ordinal == other.ordinal and self.offset < other.offset
+
 
 class Route:
 
@@ -81,7 +87,6 @@ class Route:
 
     def get_angle(self, pos: RoutePosition):
         if pos.ordinal < 1 or pos.ordinal+1 >= len(self.paths):
-            print('error', pos.ordinal)
             return 0
 
         prev = self.paths[pos.ordinal-1]
@@ -91,16 +96,19 @@ class Route:
     def get_signs_between(self, pos1: RoutePosition, pos2: RoutePosition):
         signs = []
 
+        # First path
         path = self.paths[pos1.ordinal]
         for sign in path.signs:
             if sign.offset >= pos1.offset and (pos2.ordinal > pos1.ordinal or sign.offset <= pos2.offset):
                 signs.append(sign)
 
+        # Middle paths
         for i in range(pos1.ordinal+1, pos2.ordinal):
             path = self.paths[i]
             for sign in path.signs:
                 signs.append(sign)
 
+        # Last path
         if pos1.ordinal != pos2.ordinal:
             path = self.paths[pos2.ordinal]
             for sign in path.signs:
@@ -108,6 +116,23 @@ class Route:
                     signs.append(sign)
 
         return signs
+
+    def add_distance_to_position(self, pos: RoutePosition, distance: float):
+
+        cur_pos = copy(pos)
+
+        for path in self.paths[pos.ordinal:]:
+            path_reminder_distance = path.length * (1 - cur_pos.offset)
+            if path_reminder_distance >= distance:
+                cur_pos.offset += distance / path.length
+                return cur_pos, 0
+            distance -= path_reminder_distance
+            cur_pos.ordinal += 1
+            cur_pos.offset = 0
+
+        cur_pos.ordinal -= 1
+        cur_pos.offset = 1
+        return cur_pos, distance
 
 
 class RouteFinder:

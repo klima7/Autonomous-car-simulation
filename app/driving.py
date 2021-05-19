@@ -18,6 +18,7 @@ class Driver:
         self.prev_position = None
 
         self.stop_time = 0
+        self.speedup_position = None
 
     def add_target(self, target):
         self.targets.append(target)
@@ -57,6 +58,13 @@ class Driver:
         for sign in signs:
             if sign.type == Sign.Type.STOP:
                 self.stop_time = time()
+            if sign.type == Sign.Type.WALKWAY:
+                self.speedup_position = self.route.add_distance_to_position(self.position, 2)[0]
+
+        if self.speedup_position is not None:
+            self.car.steering.target_velocity = 8
+            if self.position > self.speedup_position:
+                self.speedup_position = None
 
         if time() - self.stop_time < 3:
             self.car.steering.target_velocity = 0
@@ -66,7 +74,7 @@ class Driver:
         if self.route is None:
             self.car.steering.target_velocity = 0
         else:
-            self.car.steering.target_velocity = 20
+            self.car.steering.target_velocity = 22
 
     def update_route(self):
         if self.route is None:
