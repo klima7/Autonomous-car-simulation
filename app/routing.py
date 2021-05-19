@@ -80,13 +80,34 @@ class Route:
         return None
 
     def get_angle(self, pos: RoutePosition):
-        if pos.ordinal<1 or pos.ordinal+1 >= len(self.paths):
+        if pos.ordinal < 1 or pos.ordinal+1 >= len(self.paths):
             print('error', pos.ordinal)
             return 0
 
         prev = self.paths[pos.ordinal-1]
         next = self.paths[pos.ordinal+1]
         return Path.get_angle_between_paths(prev, next)
+
+    def get_signs_between(self, pos1: RoutePosition, pos2: RoutePosition):
+        signs = []
+
+        path = self.paths[pos1.ordinal]
+        for sign in path.signs:
+            if sign.offset >= pos1.offset and (pos2.ordinal > pos1.ordinal or sign.offset <= pos2.offset):
+                signs.append(sign)
+
+        for i in range(pos1.ordinal+1, pos2.ordinal):
+            path = self.paths[i]
+            for sign in path.signs:
+                signs.append(sign)
+
+        if pos1.ordinal != pos2.ordinal:
+            path = self.paths[pos2.ordinal]
+            for sign in path.signs:
+                if sign.offset <= pos2.offset:
+                    signs.append(sign)
+
+        return signs
 
 
 class RouteFinder:

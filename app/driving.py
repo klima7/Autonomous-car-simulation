@@ -1,9 +1,9 @@
-import math
-import time
+from time import time
+from copy import copy
 
-from meta import Crossing, Roundabout
-from routing import Route, RoutePosition, RouteFinder
 from car import Lights
+from meta import Crossing, Sign
+from routing import RoutePosition, RouteFinder
 
 
 class Driver:
@@ -15,6 +15,7 @@ class Driver:
         self.targets = []
         self.route = None
         self.position = None
+        self.prev_position = None
 
         self.stop_time = 0
 
@@ -26,9 +27,11 @@ class Driver:
         self.follow_route()
         self.update_lights()
         self.update_speed()
+        self.update_signs()
 
     def update_lights(self):
         self.car.lights.running = True
+        self.car.lights.stop = False
 
         if self.route is None:
             self.car.lights.indicators = Lights.Indicators.HAZARD_LIGHTS
@@ -49,6 +52,16 @@ class Driver:
         if prev_crossing_pos is not None and 3 > prev_crossing_distance > 2:
             self.car.lights.indicators = Lights.Indicators.DISABLED
 
+    def update_signs(self):
+        signs = self.route.get_signs_between(self.prev_position, self.position)
+        for sign in signs:
+            if sign.type == Sign.Type.STOP:
+                self.stop_time = time()
+
+        if time() - self.stop_time < 3:
+            self.car.steering.target_velocity = 0
+            self.car.lights.stop = True
+
     def update_speed(self):
         if self.route is None:
             self.car.steering.target_velocity = 0
@@ -60,9 +73,12 @@ class Driver:
             if self.targets:
                 self.car.lights.indicators = Lights.Indicators.DISABLED
                 self.position = RoutePosition(0, self.car.follower.cur_path_offset)
+                self.prev_position = self.position
                 self.route = RouteFinder.find_route_to_structure(self.mm.get_path_by_id(self.car.follower.cur_path), self.targets[0])
 
     def follow_route(self):
+        self.prev_position = copy(self.position)
+
         if self.route is None:
             return
 
