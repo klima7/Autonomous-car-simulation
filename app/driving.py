@@ -1,9 +1,18 @@
 from time import time
 from copy import copy
 
+import matplotlib.pyplot as plt
+
 from car import Lights
 from meta import Crossing, Sign
 from routing import RoutePosition, RouteFinder
+from enum import Enum, auto
+
+
+class TrafficLightColor(Enum):
+    RED = auto()
+    YELLOW = auto()
+    GREEN = auto()
 
 
 class Driver:
@@ -31,11 +40,12 @@ class Driver:
     def drive(self):
         self.update_route()
         self.follow_route()
-        self.update_lights()
+        self.update_car_lights()
         self.update_speed()
         self.update_signs()
+        self.update_traffic_lights()
 
-    def update_lights(self):
+    def update_car_lights(self):
         self.car.lights.running = True
         self.car.lights.stop = False
 
@@ -83,6 +93,20 @@ class Driver:
             self.car.steering.target_velocity = 0
             self.car.lights.stop = True
 
+    def update_traffic_lights(self):
+        position_1, _ = self.route.add_distance_to_position(self.position, 0.7)
+        position_2, _ = self.route.add_distance_to_position(self.position, 1.2)
+
+        signs = self.route.get_signs_between(position_1, position_2)
+        signs = [sign for sign in signs if sign.type == Sign.Type.TRAFFIC_LIGHTS]
+
+        if not signs:
+            return
+
+        color = self.recognize_light_color()
+        if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
+            self.car.steering.target_velocity = 0
+
     def update_speed(self):
         if self.route is None:
             self.car.steering.target_velocity = 0
@@ -114,3 +138,14 @@ class Driver:
                 self.position += 1
                 self.position.offset = 0
                 self.car.follower.cur_path = self.route[self.position].handle
+
+    def recognize_light_color(self):
+        image = self.car.view
+        image = image[:, image.shape[1]//2:]
+
+        # plt.imshow(right_part)
+        # plt.show()
+
+        # TODO: recognize color of the traffic lights on image
+
+        return TrafficLightColor.RED
