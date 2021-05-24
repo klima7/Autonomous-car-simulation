@@ -1,6 +1,7 @@
 import math
-import util
 from enum import Enum
+import numpy as np
+import util
 from api.b0RemoteApi import RemoteApiClient
 
 
@@ -94,9 +95,11 @@ class Car:
 
     def __init__(self, client: RemoteApiClient):
         self._client = client
+        _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
 
         self.gps = None
         self.orient = None
+        self.view = None
 
         self.follower = Follower()
         self.steering = AckermanSteering()
@@ -109,6 +112,15 @@ class Car:
         self.steering.set_vector(data[2])
         self.follower.set_vector(data[3])
         self.lights.set_vector(data[4])
+        self.view = self._get_camera_view()
+
+    def _get_camera_view(self):
+        _, size, view = self._client.simxGetVisionSensorImage(self.camera_handle, False, self._client.simxServiceCall())
+        view = [b for b in view]
+        view = np.array(view, dtype=np.uint8)
+        view.resize((size[1], size[0], 3))
+        view = np.flipud(view)
+        return view
 
     def apply(self):
         data = [self.steering.get_vector(), self.follower.get_vector(), self.lights.get_vector()]

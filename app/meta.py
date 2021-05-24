@@ -14,6 +14,7 @@ class Sign:
         LIMIT = 'SignLimit'
         ONEWAY = 'SignOneWay'
         DEADEND = 'SignDeadEnd'
+        TRAFFIC_LIGHTS = 'TrafficLights'
 
         @classmethod
         def from_text(cls, text):
