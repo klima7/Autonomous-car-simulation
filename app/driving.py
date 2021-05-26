@@ -2,6 +2,8 @@ from time import time
 from copy import copy
 
 import matplotlib.pyplot as plt
+import cv2
+import numpy as np
 
 from car import Lights
 from meta import Crossing, Sign
@@ -16,7 +18,6 @@ class TrafficLightColor(Enum):
 
 
 class Driver:
-
     NORMAL_SPEED = 20
     WALKWAY_SPEED = 8
     LIMITED_SPEED = 10
@@ -53,10 +54,12 @@ class Driver:
             self.car.lights.indicators = Lights.Indicators.HAZARD_LIGHTS
             return
 
-        next_crossing_pos = self.route.get_next_position(self.position, lambda path: isinstance(path.structure, Crossing) or path.is_roundabout_exit())
+        next_crossing_pos = self.route.get_next_position(self.position, lambda path: isinstance(path.structure,
+                                                                                                Crossing) or path.is_roundabout_exit())
         next_crossing_distance = self.route.get_distance_between(self.position, next_crossing_pos)
 
-        prev_crossing_pos = self.route.get_prev_position(self.position, lambda path: isinstance(path.structure, Crossing) or path.is_roundabout_exit())
+        prev_crossing_pos = self.route.get_prev_position(self.position, lambda path: isinstance(path.structure,
+                                                                                                Crossing) or path.is_roundabout_exit())
         prev_crossing_distance = self.route.get_distance_between(prev_crossing_pos, self.position)
 
         if next_crossing_pos is not None and next_crossing_distance < 2.5:
@@ -119,7 +122,8 @@ class Driver:
                 self.car.lights.indicators = Lights.Indicators.DISABLED
                 self.position = RoutePosition(0, self.car.follower.cur_path_offset)
                 self.prev_position = self.position
-                self.route = RouteFinder.find_route_to_structure(self.mm.get_path_by_id(self.car.follower.cur_path), self.targets[0])
+                self.route = RouteFinder.find_route_to_structure(self.mm.get_path_by_id(self.car.follower.cur_path),
+                                                                 self.targets[0])
 
     def follow_route(self):
         self.prev_position = copy(self.position)
@@ -141,11 +145,37 @@ class Driver:
 
     def recognize_light_color(self):
         image = self.car.view
-        image = image[:, image.shape[1]//2:]
+        image = image[:, image.shape[1] // 2:]
 
-        # plt.imshow(right_part)
-        # plt.show()
+        lower_red = np.array([0, 150, 20])
+        upper_red = np.array([10, 255, 255])
 
-        # TODO: recognize color of the traffic lights on image
+        if check_color(image, lower_red, upper_red):
+            return TrafficLightColor.RED
+
+        lower_green = np.array([50, 150, 20])
+        upper_green = np.array([80, 255, 255])
+
+        if check_color(image, lower_green, upper_green):
+            return TrafficLightColor.GREEN
+
+        lower_yellow = np.array([15, 150, 20])
+        upper_yellow = np.array([35, 255, 255])
+
+        if check_color(image, lower_yellow, upper_yellow):
+            return TrafficLightColor.YELLOW
 
         return TrafficLightColor.RED
+
+
+def check_color(img, lower, upper):
+    image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    mask = cv2.inRange(image, lower, upper)
+
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    for contour in contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        if (-1 <= w - h <= 1) and cv2.contourArea(contour) > 10:
+            return True
+
+    return False
