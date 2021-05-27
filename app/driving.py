@@ -15,6 +15,7 @@ class TrafficLightColor(Enum):
     RED = auto()
     YELLOW = auto()
     GREEN = auto()
+    NONE = auto()
 
 
 class Driver:
@@ -72,6 +73,9 @@ class Driver:
             self.car.lights.indicators = Lights.Indicators.DISABLED
 
     def update_signs(self):
+        if self.route is None:
+            return
+
         signs = self.route.get_signs_between(self.prev_position, self.position)
 
         for sign in signs:
@@ -97,15 +101,6 @@ class Driver:
             self.car.lights.stop = True
 
     def update_traffic_lights(self):
-        position_1, _ = self.route.add_distance_to_position(self.position, 0.7)
-        position_2, _ = self.route.add_distance_to_position(self.position, 1.2)
-
-        signs = self.route.get_signs_between(position_1, position_2)
-        signs = [sign for sign in signs if sign.type == Sign.Type.TRAFFIC_LIGHTS]
-
-        if not signs:
-            return
-
         color = self.recognize_light_color()
         if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
             self.car.steering.target_velocity = 0
@@ -150,32 +145,32 @@ class Driver:
         lower_red = np.array([0, 150, 20])
         upper_red = np.array([10, 255, 255])
 
-        if check_color(image, lower_red, upper_red):
+        if Driver.check_light_color(image, lower_red, upper_red):
             return TrafficLightColor.RED
 
         lower_green = np.array([50, 150, 20])
         upper_green = np.array([80, 255, 255])
 
-        if check_color(image, lower_green, upper_green):
+        if Driver.check_light_color(image, lower_green, upper_green):
             return TrafficLightColor.GREEN
 
         lower_yellow = np.array([15, 150, 20])
         upper_yellow = np.array([35, 255, 255])
 
-        if check_color(image, lower_yellow, upper_yellow):
+        if Driver.check_light_color(image, lower_yellow, upper_yellow):
             return TrafficLightColor.YELLOW
 
-        return TrafficLightColor.RED
+        return TrafficLightColor.NONE
 
+    @staticmethod
+    def check_light_color(img, lower, upper):
+        image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+        mask = cv2.inRange(image, lower, upper)
 
-def check_color(img, lower, upper):
-    image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    mask = cv2.inRange(image, lower, upper)
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            if (-1 <= w - h <= 1) and cv2.contourArea(contour) > 40:
+                return True
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        if (-1 <= w - h <= 1) and cv2.contourArea(contour) > 10:
-            return True
-
-    return False
+        return False
