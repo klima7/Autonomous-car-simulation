@@ -37,6 +37,8 @@ class Car:
         self.orient = None
         self.view = None
 
+        self.refresh()
+
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
 
