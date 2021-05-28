@@ -48,9 +48,6 @@ class Path:
         self.samples = samples
         self.estimated_length = self._calc_estimated_length()
 
-    def __getitem__(self, offset):
-        return self.get_point_on_path(offset)
-
     @property
     def start(self):
         return self.samples[0]
@@ -87,7 +84,7 @@ class Path:
         closest_distance = point.get_distance(self.samples[0])
 
         for offset in np.linspace(0, 1, 50):
-            cur_point = self[offset]
+            cur_point = self.get_point_on_path(offset)
             distance = point.get_distance(cur_point)
             if distance <= closest_distance:
                 closest_offset = offset
@@ -116,7 +113,7 @@ class Path:
 
         for path in paths:
             closest_offset = path.get_closest_offset(point)
-            closest_point = path[closest_offset]
+            closest_point = path.get_point_on_path(closest_offset)
             distance = closest_point.get_distance(point)
             if distance < closest_distance:
                 closest_distance = distance

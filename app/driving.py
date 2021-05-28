@@ -24,7 +24,6 @@ class Driver:
 
     def drive(self):
         self.cur_path_offset = self.cur_path.get_closest_offset(self.car.preview_point)
-        # print(self.cur_path_offset, self.car.preview_point, self.cur_path)
 
         self.update_route()
         self.follow_route()
@@ -39,19 +38,15 @@ class Driver:
     def update_route(self):
         if self.route is None:
             if self.targets:
-                # self.car.lights.indicators = Lights.Indicators.DISABLED
                 self.position = RoutePosition(0, self.cur_path_offset)
-                # self.prev_position = self.position
                 self.route = RouteFinder.find_route_to_structure(self.cur_path, self.targets[0])
 
     def follow_route(self):
-        # self.prev_position = copy(self.position)
-
         if self.route is None:
             return
 
         target_offset = self.cur_path.get_closest_offset(self.car.preview_point)
-        target_point = self.cur_path[target_offset]
+        target_point = self.cur_path.get_point_on_path(target_offset)
 
         self.car.navigate(target_point)
 
