@@ -37,9 +37,9 @@ class Driver:
 
     def update_speed(self):
         if self.route is None:
-            self.car.steering.target_velocity = 0
+            self.car.steering.velocity = 0
         else:
-            self.car.steering.target_velocity = Driver.NORMAL_SPEED
+            self.car.steering.velocity = Driver.NORMAL_SPEED
 
     def update_route(self):
         if self.route is None:

@@ -35,22 +35,16 @@ class AckermanSteering:
     TURNING_ANGLE = math.pi / 3
 
     def __init__(self):
-        self.curr_velocity = 0
-        self.target_velocity = 0
-
-        self.curr_left_angle = 0
-        self.target_left_angle = 0
-
-        self.curr_right_angle = 0
-        self.target_right_angle = 0
+        self.velocity = 0
+        self.left_angle = 0
+        self.right_angle = 0
 
     def get_vector(self):
-        return [self.target_velocity, self.target_left_angle, self.target_right_angle]
+        return [self.velocity, self.left_angle, self.right_angle]
 
     def set_vector(self, vector):
-        self.curr_velocity, self.target_velocity = vector[0:2]
-        self.curr_left_angle, self.curr_right_angle = vector[2]
-        self.target_left_angle, self.target_right_angle = vector[3]
+        self.velocity = vector[0]
+        self.left_angle, self.right_angle = vector[1]
 
     def set_wheels_by_radius(self, radius):
         """positive radius - right, negative - left"""
@@ -62,8 +56,8 @@ class AckermanSteering:
         else:
             left_angle, right_angle = -close_angle, -far_angle
 
-        self.target_right_angle = left_angle
-        self.target_left_angle = right_angle
+        self.right_angle = left_angle
+        self.left_angle = right_angle
 
     def set_wheels_by_angle(self, angle):
         """positive angle - right, negative - left"""
