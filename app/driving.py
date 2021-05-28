@@ -1,10 +1,5 @@
-import sys
-from copy import copy
-
-from car import Lights
-from routing import RoutePosition, RouteFinder
 from meta import Path
-from time import time
+from routing import RoutePosition, RouteFinder
 
 
 class Driver:

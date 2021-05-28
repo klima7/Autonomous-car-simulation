@@ -1,65 +1,55 @@
 import math
-from enum import Enum
+
 import numpy as np
+
 import util
-from util import Point
 from api.b0RemoteApi import RemoteApiClient
-
-
-class Lights:
-
-    class Indicators(Enum):
-        DISABLED = 0
-        LEFT = 1
-        RIGHT = 2
-        HAZARD_LIGHTS = 3
-
-    def __init__(self):
-        self.indicators = Lights.Indicators.DISABLED
-        self.stop = False
-        self.running = False
-        self.reverse = False
-
-    def get_vector(self):
-        return [self.indicators.value, int(self.stop), int(self.running), int(self.reverse)]
-
-    def set_vector(self, vector):
-        self.indicators = Lights.Indicators(vector[0])
-        self.stop = bool(vector[1])
-        self.running = bool(vector[2])
-        self.reverse = bool(vector[3])
+from util import Point
 
 
 class Car:
-    
+
     LENGTH = 0.316
     WIDTH = 0.213
     TURNING_ANGLE = math.pi / 3
 
+    INDICATORS_DISABLED = 0
+    INDICATORS_LEFT = 1
+    INDICATORS_RIGHT = 2
+    INDICATORS_HAZARD = 3
+
     def __init__(self, client: RemoteApiClient):
         self._client = client
+        _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
 
         self.velocity = 0
         self.left_angle = 0
         self.right_angle = 0
 
-        _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
+        self.indicators_lights = Car.INDICATORS_DISABLED
+        self.stop_lights = False
+        self.running_lights = False
+        self.reverse_lights = False
 
         self.gps = None
         self.orient = None
         self.view = None
-
-        self.lights = Lights()
 
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
         self.gps = Point(*data[0][0:2])
         self.orient = data[1]
 
-        self.velocity = data[2][0]
-        self.left_angle, self.right_angle = data[2][1]
+        steering_data = data[2]
+        self.velocity = steering_data[0]
+        self.left_angle, self.right_angle = steering_data[1]
 
-        self.lights.set_vector(data[3])
+        lights_data = data[3]
+        self.indicators_lights = lights_data[0]
+        self.stop_lights = bool(lights_data[1])
+        self.running_lights = bool(lights_data[2])
+        self.reverse_lights = bool(lights_data[3])
+
         self.view = self._get_camera_view()
 
     def _get_camera_view(self):
@@ -72,7 +62,9 @@ class Car:
 
     def apply(self):
         steering_data = [self.velocity, self.left_angle, self.right_angle]
-        data = [steering_data, self.lights.get_vector()]
+        lights_data = [self.indicators_lights, int(self.stop_lights), int(self.running_lights), int(self.reverse_lights)]
+
+        data = [steering_data, lights_data]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
 
     def navigate(self, target: Point):

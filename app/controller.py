@@ -1,5 +1,4 @@
 from driving import Driver
-from time import time
 
 
 class Controller:
@@ -18,8 +17,6 @@ class Controller:
         driver.add_target('RoundaboutPaths3')
 
         while True:
-            start = time()
             self.car.refresh()
             driver.drive()
             self.car.apply()
-            print(time() - start)
