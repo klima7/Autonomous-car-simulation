@@ -1,6 +1,6 @@
 from copy import copy
 from typing import List
-from meta import Path
+from meta import SimPath
 
 
 class RoutePosition:
@@ -28,7 +28,7 @@ class RoutePosition:
 
 class Route:
 
-    def __init__(self, paths: List[Path] = []):
+    def __init__(self, paths: List[SimPath] = []):
         self.paths = paths
 
     def __getitem__(self, item):
@@ -91,7 +91,7 @@ class Route:
 
         prev = self.paths[pos.ordinal-1]
         next = self.paths[pos.ordinal+1]
-        return Path.get_angle_between_paths(prev, next)
+        return SimPath.get_angle_between_paths(prev, next)
 
     def get_signs_between(self, pos1: RoutePosition, pos2: RoutePosition):
         signs = []

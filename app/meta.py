@@ -42,14 +42,9 @@ class Sign:
 
 class Path:
 
-    def __init__(self, raw_meta, structure):
-        self.handle = raw_meta[0]
-        self.length = raw_meta[1]
-        self.signs = Sign.create_list(raw_meta[2])
-        self.samples = Point.create_from_list(raw_meta[3])
-        self.structure = structure
-        self.successors = []
-        self.predecessors = []
+    def __init__(self, samples):
+        self.samples = samples
+        self.estimated_length = self._calc_estimated_length()
 
     def __getitem__(self, offset):
         return self.get_point_on_path(offset)
@@ -61,6 +56,14 @@ class Path:
     @property
     def end(self):
         return self.samples[-1]
+
+    def _calc_estimated_length(self):
+        length = 0
+        prev_sample = self.samples[0]
+        for sample in self.samples[1:]:
+            length += prev_sample.get_distance(sample)
+            prev_sample = sample
+        return length
 
     def get_point_on_path(self, offset):
         assert 0 <= offset <= 1
@@ -78,10 +81,36 @@ class Path:
         return this_point
 
     @staticmethod
+    def get_angle_between_paths(a, b):
+        xa = a.end.x - a.start.x
+        ya = a.end.y - a.start.y
+        xb = b.end.x - b.start.x
+        yb = b.end.y - b.start.y
+
+        angle = math.atan2(yb, xb) - math.atan2(ya, xa)
+        if angle > math.pi:
+            angle -= 2 * math.pi
+        if angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
+
+
+class SimPath(Path):
+
+    def __init__(self, raw_meta, structure):
+        super().__init__(samples=Point.create_from_list(raw_meta[3]))
+        self.handle = raw_meta[0]
+        self.length = raw_meta[1]
+        self.signs = Sign.create_list(raw_meta[2])
+        self.structure = structure
+        self.successors = []
+        self.predecessors = []
+
+    @staticmethod
     def create_paths_list(raw_meta_list, parent_structure):
         paths_list = []
         for raw_meta in raw_meta_list:
-            path = Path(raw_meta, parent_structure)
+            path = SimPath(raw_meta, parent_structure)
             paths_list.append(path)
         return paths_list
 
@@ -106,22 +135,8 @@ class Path:
                len(self.successors) == 1 and isinstance(self.successors[0].structure, Street) and \
                len(self.predecessors) == 1 and isinstance(self.predecessors[0].structure, Roundabout)
 
-    @staticmethod
-    def get_angle_between_paths(a, b):
-        xa = a.end.x - a.start.x
-        ya = a.end.y - a.start.y
-        xb = b.end.x - b.start.x
-        yb = b.end.y - b.start.y
-
-        angle = math.atan2(yb, xb) - math.atan2(ya, xa)
-        if angle > math.pi:
-            angle -= 2 * math.pi
-        if angle < -math.pi:
-            angle += 2 * math.pi
-        return angle
-
     def __repr__(self):
-        return f'Path({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
+        return f'SimPath({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
 
 
 class Roundabout:
@@ -131,7 +146,7 @@ class Roundabout:
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
         self.center = Point(*raw_meta[1])
-        self.paths = Path.create_paths_list(raw_meta[2], self)
+        self.paths = SimPath.create_paths_list(raw_meta[2], self)
 
     def __repr__(self):
         return f'Roundabout(name={self.name}, center={self.center}, paths={len(self.paths)}'
@@ -141,7 +156,7 @@ class Street:
 
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
-        self.paths = Path.create_paths_list(raw_meta[1], self)
+        self.paths = SimPath.create_paths_list(raw_meta[1], self)
 
     def __repr__(self):
         return f'Street(name={self.name}, paths={len(self.paths)})'
@@ -154,7 +169,7 @@ class Crossing:
 
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
-        self.paths = Path.create_paths_list(raw_meta[1], self)
+        self.paths = SimPath.create_paths_list(raw_meta[1], self)
 
     def __repr__(self):
         return f'Crossing(name={self.name}, paths={len(self.paths)})'
@@ -173,7 +188,7 @@ class MetaManager:
         self.paths = []
 
         self._fetch_meta()
-        Path.connect(self.paths)
+        SimPath.connect(self.paths)
 
     def get_path_by_id(self, id):
         matching = [p for p in self.paths if p.handle == id]
