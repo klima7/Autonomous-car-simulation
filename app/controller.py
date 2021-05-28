@@ -1,4 +1,5 @@
 from driving import Driver
+from time import time
 
 
 class Controller:
@@ -9,8 +10,6 @@ class Controller:
 
     def start(self):
         self.car.refresh()
-        self.car.follower.cur_path = self.car.follower.closest_path
-        self.car.apply()
 
         driver = Driver(self.car, self.mm)
         driver.add_target('RoundaboutPaths2')
@@ -19,6 +18,8 @@ class Controller:
         driver.add_target('RoundaboutPaths3')
 
         while True:
+            start = time()
             self.car.refresh()
             driver.drive()
             self.car.apply()
+            print(time() - start)

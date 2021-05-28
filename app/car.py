@@ -71,22 +71,6 @@ class AckermanSteering:
         self.set_wheels_by_radius(radius)
 
 
-class Follower:
-
-    def __init__(self):
-        self.cur_path = None
-        self.cur_path_offset = None
-        self.closest_path = None
-
-    def get_vector(self):
-        return self.cur_path
-
-    def set_vector(self, vector):
-        self.cur_path = vector[1]
-        self.cur_path_offset = vector[2]
-        self.closest_path = vector[3]
-
-
 class Car:
     
     LENGTH = 0.316
@@ -100,7 +84,6 @@ class Car:
         self.orient = None
         self.view = None
 
-        self.follower = Follower()
         self.steering = AckermanSteering()
         self.lights = Lights()
 
@@ -109,8 +92,7 @@ class Car:
         self.gps = Point(*data[0][0:2])
         self.orient = data[1]
         self.steering.set_vector(data[2])
-        self.follower.set_vector(data[3])
-        self.lights.set_vector(data[4])
+        self.lights.set_vector(data[3])
         self.view = self._get_camera_view()
 
     def _get_camera_view(self):
@@ -122,7 +104,7 @@ class Car:
         return view
 
     def apply(self):
-        data = [self.steering.get_vector(), self.follower.get_vector(), self.lights.get_vector()]
+        data = [self.steering.get_vector(), self.lights.get_vector()]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
 
     def navigate(self, target: Point):
@@ -137,6 +119,7 @@ class Car:
         diff_angle = util.rad2deg(diff_angle)
         self.steering.set_wheels_by_angle(diff_angle)
 
-    def get_preview_point(self):
+    @property
+    def preview_point(self):
         preview_point = util.move_forward(self.gps, self.orient, 1)
         return preview_point

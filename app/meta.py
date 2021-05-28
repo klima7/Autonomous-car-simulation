@@ -82,14 +82,14 @@ class Path:
         this_point = Point.interpolate(prev_point, next_point, between_offset)
         return this_point
 
-    def get_closest_point(self, point: Point):
-        closest_offset = 0
+    def get_closest_offset(self, point: Point):
+        closest_offset = math.inf
         closest_distance = point.get_distance(self.samples[0])
 
-        for offset in np.linspace(0, 1, 100):
+        for offset in np.linspace(0, 1, 50):
             cur_point = self[offset]
             distance = point.get_distance(cur_point)
-            if distance < closest_distance:
+            if distance <= closest_distance:
                 closest_offset = offset
                 closest_distance = distance
 
@@ -108,6 +108,21 @@ class Path:
         if angle < -math.pi:
             angle += 2 * math.pi
         return angle
+
+    @staticmethod
+    def get_path_closest_to_point(paths, point):
+        closest_distance = math.inf
+        closest_path = None
+
+        for path in paths:
+            closest_offset = path.get_closest_offset(point)
+            closest_point = path[closest_offset]
+            distance = closest_point.get_distance(point)
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_path = path
+
+        return closest_path
 
 
 class SimPath(Path):
