@@ -1,4 +1,5 @@
 import math
+import sys
 
 from util import Point
 from enum import Enum
@@ -44,19 +45,26 @@ class Path:
 
     def __init__(self, raw_meta, structure):
         self.handle = raw_meta[0]
-        self.start = Point(*raw_meta[1])
-        self.end = Point(*raw_meta[2])
-        self.length = raw_meta[3]
-        self.signs = Sign.create_list(raw_meta[4])
+        self.length = raw_meta[1]
+        self.signs = Sign.create_list(raw_meta[2])
+        self.samples = Point.create_from_list(raw_meta[3])
         self.structure = structure
         self.successors = []
         self.predecessors = []
 
+    @property
+    def start(self):
+        return self.samples[0]
+
+    @property
+    def end(self):
+        return self.samples[-1]
+
     @staticmethod
-    def create_list(raw_meta_list, structure):
+    def create_paths_list(raw_meta_list, parent_structure):
         paths_list = []
         for raw_meta in raw_meta_list:
-            path = Path(raw_meta, structure)
+            path = Path(raw_meta, parent_structure)
             paths_list.append(path)
         return paths_list
 
@@ -106,7 +114,7 @@ class Roundabout:
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
         self.center = Point(*raw_meta[1])
-        self.paths = Path.create_list(raw_meta[2], self)
+        self.paths = Path.create_paths_list(raw_meta[2], self)
 
     def __repr__(self):
         return f'Roundabout(name={self.name}, center={self.center}, paths={len(self.paths)}'
@@ -116,7 +124,7 @@ class Street:
 
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
-        self.paths = Path.create_list(raw_meta[1], self)
+        self.paths = Path.create_paths_list(raw_meta[1], self)
 
     def __repr__(self):
         return f'Street(name={self.name}, paths={len(self.paths)})'
@@ -129,7 +137,7 @@ class Crossing:
 
     def __init__(self, raw_meta):
         self.name = raw_meta[0].decode("utf-8")
-        self.paths = Path.create_list(raw_meta[1], self)
+        self.paths = Path.create_paths_list(raw_meta[1], self)
 
     def __repr__(self):
         return f'Crossing(name={self.name}, paths={len(self.paths)})'
