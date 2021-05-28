@@ -1,8 +1,7 @@
 import math
-import sys
+from enum import Enum
 
 from util import Point
-from enum import Enum
 
 
 class Sign:
@@ -52,6 +51,9 @@ class Path:
         self.successors = []
         self.predecessors = []
 
+    def __getitem__(self, offset):
+        return self.get_point_on_path(offset)
+
     @property
     def start(self):
         return self.samples[0]
@@ -59,6 +61,21 @@ class Path:
     @property
     def end(self):
         return self.samples[-1]
+
+    def get_point_on_path(self, offset):
+        assert 0 <= offset <= 1
+
+        between_index = len(self.samples) * offset
+        between_offset = between_index % 1
+
+        prev_index = max(math.floor(between_index), 0)
+        next_index = min(math.ceil(between_index), len(self.samples)-1)
+
+        prev_point = self.samples[prev_index]
+        next_point = self.samples[next_index]
+
+        this_point = Point.interpolate(prev_point, next_point, between_offset)
+        return this_point
 
     @staticmethod
     def create_paths_list(raw_meta_list, parent_structure):

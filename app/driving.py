@@ -1,7 +1,6 @@
 from time import time
 from copy import copy
 
-import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 

@@ -21,6 +21,12 @@ class Point:
             points.append(point)
         return points
 
+    @staticmethod
+    def interpolate(p1, p2, offset_from_p1):
+        x = (1-offset_from_p1) * p1.x + offset_from_p1 * p2.x
+        y = (1-offset_from_p1) * p1.y + offset_from_p1 * p2.y
+        return Point(x, y)
+
 
 def deg2rad(degrees):
     return degrees * math.pi / 180
