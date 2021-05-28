@@ -18,6 +18,8 @@ class Car:
     INDICATORS_RIGHT = 2
     INDICATORS_HAZARD = 3
 
+    PREVIEW_POINT_DISTANCE = 0.75
+
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
@@ -37,7 +39,8 @@ class Car:
 
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
-        self.gps = Point(*data[0][0:2])
+
+        self.gps = Point(*data[0])
         self.orient = data[1]
 
         steering_data = data[2]
@@ -80,8 +83,8 @@ class Car:
         self.set_wheels_by_angle(diff_angle)
 
     def set_wheels_by_radius(self, radius):
-        close_angle = math.atan(Car.LENGTH / (abs(radius) - Car.WIDTH/2))
-        far_angle = math.atan(Car.LENGTH / (abs(radius) + Car.WIDTH / 2))
+        close_angle = math.atan(self.LENGTH / (abs(radius) - self.WIDTH/2))
+        far_angle = math.atan(self.LENGTH / (abs(radius) + self.WIDTH / 2))
 
         if radius < 0:
             left_angle, right_angle = far_angle, close_angle
@@ -92,10 +95,10 @@ class Car:
         self.left_angle = right_angle
 
     def set_wheels_by_angle(self, angle):
-        radius = Car.LENGTH / math.tan(util.deg2rad(angle)) if angle != 0 else math.inf
+        radius = self.LENGTH / math.tan(util.deg2rad(angle)) if angle != 0 else math.inf
         self.set_wheels_by_radius(radius)
 
     @property
     def preview_point(self):
-        preview_point = util.move_forward(self.gps, self.orient, 1)
+        preview_point = util.move_forward(self.gps, self.orient, self.PREVIEW_POINT_DISTANCE)
         return preview_point
