@@ -34,3 +34,16 @@ def deg2rad(degrees):
 
 def rad2deg(radians):
     return radians * 180 / math.pi
+
+
+def move_forward(start: Point, angle, distance):
+    x = start.x + (distance * math.cos(angle))
+    y = start.y + (distance * math.sin(angle))
+    return Point(x, y)
+
+
+def get_vector_angle(vector):
+    angle = math.atan2(vector[1], vector[0])
+    if angle < 0:
+        angle += 2*math.pi
+    return angle

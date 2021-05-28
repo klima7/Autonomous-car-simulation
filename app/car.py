@@ -2,6 +2,7 @@ import math
 from enum import Enum
 import numpy as np
 import util
+from util import Point
 from api.b0RemoteApi import RemoteApiClient
 
 
@@ -31,7 +32,7 @@ class Lights:
 
 class AckermanSteering:
 
-    TURNING_ANGLE = 30
+    TURNING_ANGLE = math.pi / 3
 
     def __init__(self):
         self.curr_velocity = 0
@@ -73,7 +74,6 @@ class AckermanSteering:
 class Follower:
 
     def __init__(self):
-        self.target_point = None
         self.cur_path = None
         self.cur_path_offset = None
         self.closest_path = None
@@ -82,7 +82,6 @@ class Follower:
         return self.cur_path
 
     def set_vector(self, vector):
-        self.target_point = vector[0]
         self.cur_path = vector[1]
         self.cur_path_offset = vector[2]
         self.closest_path = vector[3]
@@ -107,7 +106,7 @@ class Car:
 
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
-        self.gps = data[0]
+        self.gps = Point(*data[0][0:2])
         self.orient = data[1]
         self.steering.set_vector(data[2])
         self.follower.set_vector(data[3])
@@ -126,18 +125,18 @@ class Car:
         data = [self.steering.get_vector(), self.follower.get_vector(), self.lights.get_vector()]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
 
-    def navigate(self, target):
-        diff = [self.gps[0] - target[0], self.gps[1] - target[1]]
-        target_angle = util.rad2deg(math.atan2(diff[1], diff[0]) + math.pi)
-        car_angle = util.rad2deg(self.orient + math.pi)
+    def navigate(self, target: Point):
+        diff = [target.x-self.gps.x, target.y-self.gps.y]
+        target_angle = util.get_vector_angle(diff)
+        car_angle = self.orient
         diff_angle = car_angle - target_angle
-
-        if diff_angle > 180:
-            diff_angle = 180 - diff_angle
-        if diff_angle < -180:
-            diff_angle = 360 + diff_angle
 
         diff_angle = min(self.steering.TURNING_ANGLE, diff_angle)
         diff_angle = max(-self.steering.TURNING_ANGLE, diff_angle)
 
+        diff_angle = util.rad2deg(diff_angle)
         self.steering.set_wheels_by_angle(diff_angle)
+
+    def get_preview_point(self):
+        preview_point = util.move_forward(self.gps, self.orient, 1)
+        return preview_point

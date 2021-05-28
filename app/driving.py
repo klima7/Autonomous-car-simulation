@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 
 from car import Lights
-from meta import Crossing, Sign
+from meta import Crossing, Sign, Point
 from routing import RoutePosition, RouteFinder
 from enum import Enum, auto
 
@@ -34,6 +34,8 @@ class Driver:
         self.stop_time = 0
         self.speedup_position = None
         self.speed_limit_street = None
+
+        self.cur_path = self.mm.get_structure_by_name('StreetPaths8').paths[0]
 
     def add_target(self, target):
         self.targets.append(target)
@@ -116,8 +118,7 @@ class Driver:
                 self.car.lights.indicators = Lights.Indicators.DISABLED
                 self.position = RoutePosition(0, self.car.follower.cur_path_offset)
                 self.prev_position = self.position
-                self.route = RouteFinder.find_route_to_structure(self.mm.get_path_by_id(self.car.follower.cur_path),
-                                                                 self.targets[0])
+                self.route = RouteFinder.find_route_to_structure(self.cur_path, self.targets[0])
 
     def follow_route(self):
         self.prev_position = copy(self.position)
@@ -125,7 +126,12 @@ class Driver:
         if self.route is None:
             return
 
-        self.car.navigate(self.car.follower.target_point)
+        cur_path = self.route[self.position]
+        preview_point = self.car.get_preview_point()
+        target_offset = cur_path.get_closest_point(preview_point)
+        target_point = cur_path[target_offset]
+
+        self.car.navigate(target_point)
 
         self.position.offset = self.car.follower.cur_path_offset
         if self.position.offset == 1:

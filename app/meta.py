@@ -1,6 +1,8 @@
 import math
 from enum import Enum
 
+import numpy as np
+
 from util import Point
 
 
@@ -71,7 +73,7 @@ class Path:
         between_index = len(self.samples) * offset
         between_offset = between_index % 1
 
-        prev_index = max(math.floor(between_index), 0)
+        prev_index = min(max(math.floor(between_index), 0), len(self.samples)-1)
         next_index = min(math.ceil(between_index), len(self.samples)-1)
 
         prev_point = self.samples[prev_index]
@@ -79,6 +81,19 @@ class Path:
 
         this_point = Point.interpolate(prev_point, next_point, between_offset)
         return this_point
+
+    def get_closest_point(self, point: Point):
+        closest_offset = 0
+        closest_distance = point.get_distance(self.samples[0])
+
+        for offset in np.linspace(0, 1, 100):
+            cur_point = self[offset]
+            distance = point.get_distance(cur_point)
+            if distance < closest_distance:
+                closest_offset = offset
+                closest_distance = distance
+
+        return closest_offset
 
     @staticmethod
     def get_angle_between_paths(a, b):
