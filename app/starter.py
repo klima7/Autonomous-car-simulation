@@ -22,5 +22,5 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
         car.refresh()
         start = time()
         driver.drive()
-        # print(time() - start)
+        print(time() - start)
         car.apply()

@@ -20,7 +20,7 @@ def generate_path(radius):
     points = []
 
     for i in range(POINTS_COUNT):
-        angle = -end_angle / (POINTS_COUNT-1) * i
+        angle = -end_angle / (POINTS_COUNT - 1) * i
         point = first_point.get_rotated(angle, circle_center)
         points.append(point)
 
@@ -54,13 +54,13 @@ def get_matching_factor(path, points):
 
 def find_best_path(route: Route, cur_position: RoutePosition, car_gps, car_orientation):
     points = []
-    for distance in [2]:
+    for distance in [0.1, 0.25, 0.4, 0.5, 0.75, 1]:
         position, _ = route.add_distance_to_position(cur_position, distance)
         point = route[position].get_point_on_path(position.offset)  # TODO
-        print(point, car_gps)
+        # print(point, car_gps)
         point.x -= car_gps.x
         point.y -= car_gps.y
-        print('#' + str(point))
+        # print('#' + str(point))
         # print(point)
         # print(point)
         # print(car_orientation)
@@ -80,6 +80,9 @@ def find_best_path(route: Route, cur_position: RoutePosition, car_gps, car_orien
         if factor < best_factor:
             best_factor = factor
             best_path = path
+
+    best_path = best_path.get_rotated(car_orientation, Point(0, 0))
+    best_path = best_path.get_translated(car_gps)
 
     return best_path
 

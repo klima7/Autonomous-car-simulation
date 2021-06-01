@@ -93,6 +93,29 @@ class Path:
 
         return closest_offset
 
+    def plot(self):
+        xs = [point.x for point in self.samples]
+        ys = [point.y for point in self.samples]
+        plt.plot(xs, ys)
+
+    def get_rotated(self, angle, center):
+        rotated_samples = []
+
+        for sample in self.samples:
+            rotated_sample = sample.get_rotated(angle, center)
+            rotated_samples.append(rotated_sample)
+
+        return Path(rotated_samples)
+
+    def get_translated(self, shift):
+        translated_samples = []
+
+        for sample in self.samples:
+            translated_sample = Point(sample.x + shift.x, sample.y + shift.y)
+            translated_samples.append(translated_sample)
+
+        return Path(translated_samples)
+
     @staticmethod
     def get_angle_between_paths(a, b):
         xa = a.end.x - a.start.x
@@ -121,11 +144,6 @@ class Path:
                 closest_path = path
 
         return closest_path
-
-    def plot(self):
-        xs = [point.x for point in self.samples]
-        ys = [point.y for point in self.samples]
-        plt.plot(xs, ys)
 
 
 class SimPath(Path):
