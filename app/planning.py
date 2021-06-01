@@ -1,81 +1,86 @@
 import math
+import numpy as np
 
 from meta import Path, Point
-from routing import Route, RoutePosition
-import matplotlib.pyplot as plt
-
-PATH_LENGTH = 3
-POINTS_COUNT = 20
-MIN_RADIUS = 1
-
-paths = []
 
 
-def generate_path(radius):
-    end_angle = PATH_LENGTH / radius
-    first_point = Point(0, 0)
-    circle_center = Point(0, -radius)
+class RoutePlanner:
 
-    points = []
+    PATH_LENGTH = 3
+    POINTS_COUNT = 20
+    MIN_RADIUS = 1
 
-    for i in range(POINTS_COUNT):
-        angle = -end_angle / (POINTS_COUNT - 1) * i
-        point = first_point.get_rotated(angle, circle_center)
-        points.append(point)
+    MAX_COMPARISON_DISTANCE = 1
+    COMPARISON_DISTANCES_COUNT = 5
 
-    path = Path(points)
-    path.radius = radius
-    return path
+    def __init__(self):
+        self.paths = self._generate_paths()
+        self.comparison_points = self._generate_comparison_points()
 
+    def plan_route(self, route, route_position, car_gps, car_orientation):
+        points = []
+        for distance in self.comparison_points:
+            position, _ = route.add_distance_to_position(route_position, distance)
+            point = route[position].get_point_on_path(position.offset)
+            point.x -= car_gps.x
+            point.y -= car_gps.y
+            point = point.get_rotated(-car_orientation, Point(0, 0))
+            points.append(point)
 
-def generate_paths():
-    for sign in [1, -1]:
-        r = MIN_RADIUS * sign
-        for i in range(35):
-            path = generate_path(r)
-            paths.append(path)
-            if abs(r) < 6:
-                r *= 1.1
-            else:
-                r *= 1.2
+        best_path = None
+        best_factor = math.inf
 
+        for path in self.paths:
+            factor = self._sum_points_distances(path, points)
+            if factor < best_factor:
+                best_factor = factor
+                best_path = path
 
-def get_matching_factor(path, points):
-    matching_factor = 0
+        best_path = best_path.get_rotated(car_orientation, Point(0, 0))
+        best_path = best_path.get_translated(car_gps)
 
-    for point in points:
-        offset = path.get_closest_offset(point)
-        closest_point = path.get_point_on_path(offset)
-        matching_factor += point.get_distance(closest_point)
+        return best_path
 
-    return matching_factor
+    def _generate_comparison_points(self):
+        points = np.linspace(0, self.MAX_COMPARISON_DISTANCE, self.COMPARISON_DISTANCES_COUNT + 1)[1:]
+        return points.tolist()
 
+    def _generate_paths(self):
+        paths = []
+        for sign in [1, -1]:
+            r = self.MIN_RADIUS * sign
+            for i in range(35):
+                path = self._generate_path(r)
+                paths.append(path)
+                if abs(r) < 6:
+                    r *= 1.1
+                else:
+                    r *= 1.2
+        return paths
 
-def find_best_path(route: Route, cur_position: RoutePosition, car_gps, car_orientation):
-    points = []
-    for distance in [0.1, 0.25, 0.4, 0.5, 0.75, 1]:
-        position, _ = route.add_distance_to_position(cur_position, distance)
-        point = route[position].get_point_on_path(position.offset)  # TODO
-        point.x -= car_gps.x
-        point.y -= car_gps.y
-        plt.plot(point.x, point.y, 'ro')
-        point = point.get_rotated(-car_orientation, Point(0, 0))
-        plt.plot(point.x, point.y, 'bo')
-        points.append(point)
+    def _generate_path(self, radius):
+        end_angle = self.PATH_LENGTH / radius
+        first_point = Point(0, 0)
+        circle_center = Point(0, -radius)
 
-    best_path = None
-    best_factor = math.inf
+        points = []
 
-    for path in paths:
-        factor = get_matching_factor(path, points)
-        if factor < best_factor:
-            best_factor = factor
-            best_path = path
+        for i in range(self.POINTS_COUNT):
+            angle = -end_angle / (self.POINTS_COUNT - 1) * i
+            point = first_point.get_rotated(angle, circle_center)
+            points.append(point)
 
-    best_path = best_path.get_rotated(car_orientation, Point(0, 0))
-    best_path = best_path.get_translated(car_gps)
+        path = Path(points)
+        path.radius = radius
+        return path
 
-    return best_path
+    @staticmethod
+    def _sum_points_distances(path, points):
+        cumulated_distances = 0
 
+        for point in points:
+            offset = path.get_closest_offset(point)
+            closest_point = path.get_point_on_path(offset)
+            cumulated_distances += point.get_distance(closest_point)
 
-generate_paths()
+        return cumulated_distances
