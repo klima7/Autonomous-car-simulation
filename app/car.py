@@ -78,6 +78,11 @@ class Car:
         car_angle = self.orient
         diff_angle = car_angle - target_angle
 
+        if diff_angle > math.pi:
+            diff_angle = diff_angle - 2*math.pi
+        if diff_angle < -math.pi:
+            diff_angle = diff_angle + 2*math.pi
+
         diff_angle = min(self.TURNING_ANGLE, diff_angle)
         diff_angle = max(-self.TURNING_ANGLE, diff_angle)
 

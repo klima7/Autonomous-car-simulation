@@ -1,6 +1,7 @@
 import math
 from enum import Enum
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from util import Point
@@ -120,6 +121,11 @@ class Path:
                 closest_path = path
 
         return closest_path
+
+    def plot(self):
+        xs = [point.x for point in self.samples]
+        ys = [point.y for point in self.samples]
+        plt.plot(xs, ys)
 
 
 class SimPath(Path):

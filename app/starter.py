@@ -2,6 +2,7 @@ from api import b0RemoteApi
 from car import Car
 from meta import MetaManager
 from driving import Driver
+from time import time
 
 CLIENT_NAME = 'Python_client'
 CHANNEL_NAME = 'b0RemoteApi'
@@ -19,5 +20,7 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
 
     while True:
         car.refresh()
+        start = time()
         driver.drive()
+        # print(time() - start)
         car.apply()

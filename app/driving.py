@@ -1,5 +1,6 @@
 from meta import Path
 from routing import RoutePosition, RouteFinder
+from planning import find_best_path
 
 
 class Driver:
@@ -44,6 +45,9 @@ class Driver:
     def follow_route(self):
         if self.route is None:
             return
+
+        path = find_best_path(self.route, self.position, self.car.gps, self.car.orient)
+        print(path.radius)
 
         target_offset = self.cur_path.get_closest_offset(self.car.preview_point)
         target_point = self.cur_path.get_point_on_path(target_offset)
