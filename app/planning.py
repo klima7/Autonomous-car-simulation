@@ -6,10 +6,10 @@ from meta import Path, Point
 
 class RoutePlanner:
 
-    PATH_LENGTH = 2
+    PATH_LENGTH = 1
     POINTS_COUNT = 20
     MIN_RADIUS = 1
-    COMPARISON_DISTANCES_COUNT = 5
+    COMPARISON_DISTANCES_COUNT = 50
 
     def __init__(self):
         self.paths = self._generate_paths()
@@ -34,10 +34,12 @@ class RoutePlanner:
                 best_factor = factor
                 best_path = path
 
+        radius = best_path.radius
+
         best_path = best_path.get_rotated(car_orientation, Point(0, 0))
         best_path = best_path.get_translated(car_gps)
 
-        return best_path
+        return best_path, radius
 
     def _generate_comparison_points(self):
         points = np.linspace(0, self.PATH_LENGTH, self.COMPARISON_DISTANCES_COUNT + 1)[1:]
@@ -72,13 +74,20 @@ class RoutePlanner:
         path.radius = radius
         return path
 
-    @staticmethod
-    def _sum_points_distances(path, points):
+    def _sum_points_distances(self, path, points):
         cumulated_distances = 0
 
-        for point in points:
-            offset = path.get_closest_offset(point)
-            closest_point = path.get_point_on_path(offset)
-            cumulated_distances += point.get_distance(closest_point)
+        last_closest_offset = path.get_closest_offset(points[-1])
+
+        for i in range(self.COMPARISON_DISTANCES_COUNT):
+            offset = (i+1) / self.COMPARISON_DISTANCES_COUNT
+            offset *= last_closest_offset
+            point = path.get_point_on_path(offset)
+            cumulated_distances += point.get_distance(points[i])
+
+        # for point in points:
+        #     offset = path.get_closest_offset(point)
+        #     closest_point = path.get_point_on_path(offset)
+        #     cumulated_distances += point.get_distance(closest_point)
 
         return cumulated_distances

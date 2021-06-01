@@ -44,11 +44,9 @@ class Driver:
         if self.route is None:
             return
 
-        planned_path = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient)
-        planned_target_offset = planned_path.get_closest_offset(self.car.preview_point)
-        planned_target_point = planned_path.get_point_on_path(planned_target_offset)
-        self.car.navigate(planned_target_point)
-        self.car.set_planned_path_visualization(planned_path)
+        path, radius = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient)
+        self.car.set_wheels_by_radius(radius)
+        self.car.set_planned_path_visualization(path)
 
         self.position.offset = self.cur_path.get_closest_offset(self.car.preview_point)
         if self.position.offset == 1:
