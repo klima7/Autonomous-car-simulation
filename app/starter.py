@@ -19,8 +19,8 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
     driver.add_target('RoundaboutPaths3')
 
     while True:
-        car.refresh()
         start = time()
+        car.refresh()
         driver.drive()
-        print(time() - start)
         car.apply()
+        print(time() - start)

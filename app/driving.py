@@ -20,8 +20,6 @@ class Driver:
         self.cur_path = Path.get_path_closest_to_point(self.mm.paths, self.car.preview_point)
         self.cur_path_offset = None
 
-        self.planned_path = None
-
     def add_target(self, target):
         self.targets.append(target)
 
@@ -48,15 +46,10 @@ class Driver:
         if self.route is None:
             return
 
-        self.planned_path = find_best_path(self.route, self.position, self.car.gps, self.car.orient)
-        planned_target_offset = self.planned_path.get_closest_offset(self.car.preview_point)
-        planned_target_point = self.planned_path.get_point_on_path(planned_target_offset)
+        planned_path = find_best_path(self.route, self.position, self.car.gps, self.car.orient)
+        planned_target_offset = planned_path.get_closest_offset(self.car.preview_point)
+        planned_target_point = planned_path.get_point_on_path(planned_target_offset)
         self.car.navigate(planned_target_point)
-
-
-        # target_offset = self.cur_path.get_closest_offset(self.car.preview_point)
-        # target_point = self.cur_path.get_point_on_path(target_offset)
-        # self.car.navigate(target_point)
 
         self.position.offset = self.cur_path_offset
         if self.position.offset == 1:

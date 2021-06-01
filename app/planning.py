@@ -1,5 +1,4 @@
 import math
-import sys
 
 from meta import Path, Point
 from routing import Route, RoutePosition
@@ -57,20 +56,12 @@ def find_best_path(route: Route, cur_position: RoutePosition, car_gps, car_orien
     for distance in [0.1, 0.25, 0.4, 0.5, 0.75, 1]:
         position, _ = route.add_distance_to_position(cur_position, distance)
         point = route[position].get_point_on_path(position.offset)  # TODO
-        # print(point, car_gps)
         point.x -= car_gps.x
         point.y -= car_gps.y
-        # print('#' + str(point))
-        # print(point)
-        # print(point)
-        # print(car_orientation)
         plt.plot(point.x, point.y, 'ro')
         point = point.get_rotated(-car_orientation, Point(0, 0))
         plt.plot(point.x, point.y, 'bo')
-        # plt.show()
         points.append(point)
-        # sys.exit(0)
-    # print(points)
 
     best_path = None
     best_factor = math.inf

@@ -23,6 +23,7 @@ class Car:
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
+        self._client.simxGetVisionSensorImage(self.camera_handle, False, self._client.simxDefaultSubscriber(self._view_received_handler, 10))
 
         self.velocity = 0
         self.left_angle = 0
@@ -38,6 +39,14 @@ class Car:
         self.view = None
 
         self.refresh()
+
+    def _view_received_handler(self, data):
+        _, size, view = data
+        view = [b for b in view]
+        view = np.array(view, dtype=np.uint8)
+        view.resize((size[1], size[0], 3))
+        view = np.flipud(view)
+        self.view = view
 
     def refresh(self):
         _, *data = self._client.simxCallScriptFunction("get_state@Car", "sim.scripttype_childscript", [], self._client.simxServiceCall())
@@ -55,22 +64,14 @@ class Car:
         self.running_lights = bool(lights_data[2])
         self.reverse_lights = bool(lights_data[3])
 
-        self.view = self._get_camera_view()
-
-    def _get_camera_view(self):
-        _, size, view = self._client.simxGetVisionSensorImage(self.camera_handle, False, self._client.simxServiceCall())
-        view = [b for b in view]
-        view = np.array(view, dtype=np.uint8)
-        view.resize((size[1], size[0], 3))
-        view = np.flipud(view)
-        return view
-
     def apply(self):
         steering_data = [self.velocity, self.left_angle, self.right_angle]
         lights_data = [self.indicators_lights, int(self.stop_lights), int(self.running_lights), int(self.reverse_lights)]
 
         data = [steering_data, lights_data]
         self._client.simxCallScriptFunction("set_state@Car", "sim.scripttype_childscript", data, self._client.simxServiceCall())
+
+        self._client.simxSpinOnce()
 
     def navigate(self, target: Point):
         diff = [target.x-self.gps.x, target.y-self.gps.y]
