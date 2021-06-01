@@ -64,6 +64,10 @@ class Car:
         self.running_lights = bool(lights_data[2])
         self.reverse_lights = bool(lights_data[3])
 
+    def set_planned_path_visualization(self, path):
+        data = [[s.x, s.y] for s in path.samples]
+        self._client.simxCallScriptFunction("set_path@PlannedRouteVisualization", "sim.scripttype_childscript", data, self._client.simxDefaultPublisher())
+
     def apply(self):
         steering_data = [self.velocity, self.left_angle, self.right_angle]
         lights_data = [self.indicators_lights, int(self.stop_lights), int(self.running_lights), int(self.reverse_lights)]

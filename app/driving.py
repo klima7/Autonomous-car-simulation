@@ -48,6 +48,7 @@ class Driver:
         planned_target_offset = planned_path.get_closest_offset(self.car.preview_point)
         planned_target_point = planned_path.get_point_on_path(planned_target_offset)
         self.car.navigate(planned_target_point)
+        self.car.set_planned_path_visualization(planned_path)
 
         self.position.offset = self.cur_path.get_closest_offset(self.car.preview_point)
         if self.position.offset == 1:

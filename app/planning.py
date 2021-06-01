@@ -6,11 +6,9 @@ from meta import Path, Point
 
 class RoutePlanner:
 
-    PATH_LENGTH = 3
+    PATH_LENGTH = 2
     POINTS_COUNT = 20
     MIN_RADIUS = 1
-
-    MAX_COMPARISON_DISTANCE = 1
     COMPARISON_DISTANCES_COUNT = 5
 
     def __init__(self):
@@ -42,7 +40,7 @@ class RoutePlanner:
         return best_path
 
     def _generate_comparison_points(self):
-        points = np.linspace(0, self.MAX_COMPARISON_DISTANCE, self.COMPARISON_DISTANCES_COUNT + 1)[1:]
+        points = np.linspace(0, self.PATH_LENGTH, self.COMPARISON_DISTANCES_COUNT + 1)[1:]
         return points.tolist()
 
     def _generate_paths(self):
