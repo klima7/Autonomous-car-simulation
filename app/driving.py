@@ -18,7 +18,7 @@ class Driver:
         self.route = None
         self.position = None
 
-        self.cur_path = Path.get_path_closest_to_point(self.mm.paths, self.car.preview_point)
+        self.cur_path = Path.get_path_closest_to_point(self.mm.paths, self.car.gps)
 
     def add_target(self, target):
         self.targets.append(target)
@@ -44,11 +44,11 @@ class Driver:
         if self.route is None:
             return
 
-        path, radius = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient, self.car)
+        path, radius = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient)
         self.car.set_wheels_by_radius(radius)
         self.car.set_planned_path_visualization(path)
 
-        self.position.offset = self.cur_path.get_closest_offset(self.car.preview_point)
+        self.position.offset = self.cur_path.get_closest_offset(self.car.gps)
         if self.position.offset == 1:
             if self.position.ordinal + 1 >= len(self.route):
                 self.route = None

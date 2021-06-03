@@ -9,19 +9,19 @@ class RoutePlanner:
     PATH_LENGTH = 1
     POINTS_COUNT = 20
     MIN_RADIUS = 0.5
-    COMPARISON_DISTANCES_COUNT = 50
+    COMPARISON_DISTANCES_COUNT = 10
 
     def __init__(self):
         self.paths = self._generate_paths()
         self.comparison_points = self._generate_comparison_points()
 
-    def plan_route(self, route, route_position, car_gps, car_orientation, car):
+    def plan_route(self, route, route_position, car_gps, car_orientation):
         points = []
         for distance in self.comparison_points:
             position, _ = route.add_distance_to_position(route_position, distance)
             point = route[position].get_point_on_path(position.offset)
-            point.x -= car.preview_point.x
-            point.y -= car.preview_point.y
+            point.x -= car_gps.x
+            point.y -= car_gps.y
             point = point.get_rotated(-car_orientation, Point(0, 0))
             points.append(point)
 
@@ -37,7 +37,7 @@ class RoutePlanner:
         radius = best_path.radius
 
         best_path = best_path.get_rotated(car_orientation, Point(0, 0))
-        best_path = best_path.get_translated(car.preview_point)
+        best_path = best_path.get_translated(car_gps)
 
         return best_path, radius
 

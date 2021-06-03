@@ -18,8 +18,6 @@ class Car:
     INDICATORS_RIGHT = 2
     INDICATORS_HAZARD = 3
 
-    PREVIEW_POINT_DISTANCE = 0.0
-
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
@@ -109,8 +107,3 @@ class Car:
     def set_wheels_by_angle(self, angle):
         radius = self.LENGTH / math.tan(util.deg2rad(angle)) if angle != 0 else math.inf
         self.set_wheels_by_radius(radius)
-
-    @property
-    def preview_point(self):
-        preview_point = util.move_forward(self.gps, self.orient, self.PREVIEW_POINT_DISTANCE)
-        return preview_point
