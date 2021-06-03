@@ -18,7 +18,7 @@ class Car:
     INDICATORS_RIGHT = 2
     INDICATORS_HAZARD = 3
 
-    PREVIEW_POINT_DISTANCE = 0.75
+    PREVIEW_POINT_DISTANCE = 0.0
 
     def __init__(self, client: RemoteApiClient):
         self._client = client

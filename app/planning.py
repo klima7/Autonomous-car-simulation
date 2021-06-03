@@ -8,20 +8,20 @@ class RoutePlanner:
 
     PATH_LENGTH = 1
     POINTS_COUNT = 20
-    MIN_RADIUS = 1
+    MIN_RADIUS = 0.5
     COMPARISON_DISTANCES_COUNT = 50
 
     def __init__(self):
         self.paths = self._generate_paths()
         self.comparison_points = self._generate_comparison_points()
 
-    def plan_route(self, route, route_position, car_gps, car_orientation):
+    def plan_route(self, route, route_position, car_gps, car_orientation, car):
         points = []
         for distance in self.comparison_points:
             position, _ = route.add_distance_to_position(route_position, distance)
             point = route[position].get_point_on_path(position.offset)
-            point.x -= car_gps.x
-            point.y -= car_gps.y
+            point.x -= car.preview_point.x
+            point.y -= car.preview_point.y
             point = point.get_rotated(-car_orientation, Point(0, 0))
             points.append(point)
 
@@ -37,7 +37,7 @@ class RoutePlanner:
         radius = best_path.radius
 
         best_path = best_path.get_rotated(car_orientation, Point(0, 0))
-        best_path = best_path.get_translated(car_gps)
+        best_path = best_path.get_translated(car.preview_point)
 
         return best_path, radius
 
@@ -49,7 +49,7 @@ class RoutePlanner:
         paths = []
         for sign in [1, -1]:
             r = self.MIN_RADIUS * sign
-            for i in range(35):
+            for i in range(50):
                 path = self._generate_path(r)
                 paths.append(path)
                 if abs(r) < 6:

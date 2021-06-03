@@ -44,7 +44,7 @@ class Driver:
         if self.route is None:
             return
 
-        path, radius = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient)
+        path, radius = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient, self.car)
         self.car.set_wheels_by_radius(radius)
         self.car.set_planned_path_visualization(path)
 
