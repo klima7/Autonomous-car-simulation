@@ -149,10 +149,11 @@ class Path:
 class SimPath(Path):
 
     def __init__(self, raw_meta, structure):
-        super().__init__(samples=Point.create_from_list(raw_meta[3]))
+        super().__init__(samples=Point.create_from_list(raw_meta[4]))
         self.handle = raw_meta[0]
-        self.length = raw_meta[1]
-        self.signs = Sign.create_list(raw_meta[2])
+        self.name = raw_meta[1].decode("utf-8")
+        self.length = raw_meta[2]
+        self.signs = Sign.create_list(raw_meta[3])
         self.structure = structure
         self.successors = []
         self.predecessors = []
@@ -245,12 +246,16 @@ class MetaManager:
         matching = [p for p in self.paths if p.handle == id]
         return matching[0] if matching else None
 
+    def get_path_by_name(self, name):
+        matching = [p for p in self.paths if p.name == name]
+        return matching[0] if matching else None
+
     def get_structure_by_name(self, name):
         structures = [*self.roundabouts, *self.streets, *self.crossings]
         for structure in structures:
             if structure.name == name:
                 return structure
-
+            
     def _fetch_meta(self):
         _, *meta = self._client.simxCallScriptFunction("get_meta@Meta", "sim.scripttype_childscript", [], self._client.simxServiceCall())
         roundabouts_meta, streets_meta, crossings_meta = meta[0]
