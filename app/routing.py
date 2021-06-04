@@ -143,12 +143,19 @@ class RouteFinder:
             self.prev = None
 
     @staticmethod
+    def find_route(start_path, target):
+        if isinstance(target, SimPath):
+            return RouteFinder.find_route_to_path(start_path, target)
+        else:
+            return RouteFinder.find_route_to_structure(start_path, target)
+
+    @staticmethod
     def find_route_to_path(start_path, end_path):
         return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path == end_path)
 
     @staticmethod
     def find_route_to_structure(start_path, end_structure):
-        return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path.structure.name == end_structure)
+        return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path.structure == end_structure)
 
     @staticmethod
     def find_route_to_path_predicate(start, target_path_predicate):
@@ -169,37 +176,6 @@ class RouteFinder:
         while len(open_list) > 0:
             x = open_list.pop(0)
             if target_path_predicate(x.path):
-                routes.append(x)
-                continue
-            closed_list.append(x)
-            for neighbor in x.path.successors:
-                if neighbor in [item.path for item in closed_list]:
-                    continue
-                else:
-                    t = RouteFinder.PathWrapper(neighbor)
-                    t.prev = x
-                    open_list.append(t)
-        return routes
-
-    @staticmethod
-    def find_route_to_struct(start, end):
-        routes = RouteFinder._find_routes_to_struct(start, end)
-        shortest = RouteFinder._find_shortest_route(routes)
-        shortest_way = RouteFinder._create_shortest_route(shortest)
-        shortest_way = [start, *shortest_way]
-        return Route(shortest_way)
-
-    @staticmethod
-    def _find_routes_to_struct(start, end_struct):
-        start = RouteFinder.PathWrapper(start)
-
-        open_list = [start]
-        closed_list = []
-        routes = []
-
-        while len(open_list) > 0:
-            x = open_list.pop(0)
-            if x.path.structure.name == end_struct:
                 routes.append(x)
                 continue
             closed_list.append(x)

@@ -13,10 +13,14 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
     mm = MetaManager(client)
     driver = Driver(car, mm)
 
-    driver.add_target('RoundaboutPaths2')
-    driver.add_target('RoundaboutPaths1')
-    driver.add_target('RoundaboutPaths0')
-    driver.add_target('RoundaboutPaths3')
+    driver.drive_to_path('Path29', offset=0.5, backward=False)
+    driver.drive_to_path('Path32', offset=0.5, backward=False)
+    driver.drive_to_structure('StreetPaths24')
+    driver.drive_to_structure('StreetPaths9')
+    driver.drive_to_structure('RoundaboutPaths2')
+    driver.drive_to_structure('RoundaboutPaths1')
+    driver.drive_to_structure('RoundaboutPaths0')
+    driver.drive_to_structure('RoundaboutPaths3')
 
     while True:
         start = time()

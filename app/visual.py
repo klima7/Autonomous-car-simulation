@@ -22,7 +22,7 @@ def recognize_light_color(image):
     if check_light_color(image, [58, 240, 150], [62, 255, 190]):
         return TrafficLightColor.GREEN
 
-    if check_light_color(image, [25, 240, 150], [30, 255, 190]):
+    if check_light_color(image, [28, 240, 150], [30, 255, 190]):
         return TrafficLightColor.YELLOW
 
     return TrafficLightColor.NONE
