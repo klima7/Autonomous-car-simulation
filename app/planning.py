@@ -85,9 +85,4 @@ class RoutePlanner:
             point = path.get_point_on_path(offset)
             cumulated_distances += point.get_distance(points[i])
 
-        # for point in points:
-        #     offset = path.get_closest_offset(point)
-        #     closest_point = path.get_point_on_path(offset)
-        #     cumulated_distances += point.get_distance(closest_point)
-
         return cumulated_distances

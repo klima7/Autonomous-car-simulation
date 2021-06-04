@@ -16,22 +16,13 @@ def recognize_light_color(image):
 
     image = image[:, image.shape[1] // 2:]
 
-    lower_red = np.array([0, 150, 20])
-    upper_red = np.array([10, 255, 255])
-
-    if check_light_color(image, lower_red, upper_red):
+    if check_light_color(image, [0, 240, 150], [5, 255, 190]):
         return TrafficLightColor.RED
 
-    lower_green = np.array([50, 150, 20])
-    upper_green = np.array([80, 255, 255])
-
-    if check_light_color(image, lower_green, upper_green):
+    if check_light_color(image, [58, 240, 150], [62, 255, 190]):
         return TrafficLightColor.GREEN
 
-    lower_yellow = np.array([15, 150, 20])
-    upper_yellow = np.array([35, 255, 255])
-
-    if check_light_color(image, lower_yellow, upper_yellow):
+    if check_light_color(image, [25, 240, 150], [30, 255, 190]):
         return TrafficLightColor.YELLOW
 
     return TrafficLightColor.NONE
@@ -39,7 +30,7 @@ def recognize_light_color(image):
 
 def check_light_color(img, lower, upper):
     image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    mask = cv2.inRange(image, lower, upper)
+    mask = cv2.inRange(image, np.array(lower), np.array(upper))
 
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
