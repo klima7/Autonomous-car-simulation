@@ -1,6 +1,7 @@
 from meta import Path
 from routing import RoutePosition, RouteFinder
 from planning import RoutePlanner
+from visual import TrafficLightColor, recognize_light_color
 
 
 class Driver:
@@ -27,6 +28,7 @@ class Driver:
         self.update_route()
         self.follow_route()
         self.update_speed()
+        self.update_traffic_lights()
 
     def update_speed(self):
         if self.route is None:
@@ -58,3 +60,7 @@ class Driver:
                 self.position.offset = 0
                 self.cur_path = self.route[self.position]
 
+    def update_traffic_lights(self):
+        color = recognize_light_color(self.car.view)
+        if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
+            self.car.velocity = 0
