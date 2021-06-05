@@ -14,13 +14,13 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
     driver = Driver(car, mm)
 
     driver.drive_to_path('Path29', offset=0.5, backward=False)
-    driver.drive_to_path('Path32', offset=0.5, backward=False)
-    driver.drive_to_structure('StreetPaths24')
-    driver.drive_to_structure('StreetPaths9')
-    driver.drive_to_structure('RoundaboutPaths2')
-    driver.drive_to_structure('RoundaboutPaths1')
-    driver.drive_to_structure('RoundaboutPaths0')
-    driver.drive_to_structure('RoundaboutPaths3')
+    driver.drive_to_path('Path32', offset=0.5, backward=True)
+    # driver.drive_to_structure('StreetPaths24')
+    # driver.drive_to_structure('StreetPaths9')
+    # driver.drive_to_structure('RoundaboutPaths2')
+    # driver.drive_to_structure('RoundaboutPaths1')
+    # driver.drive_to_structure('RoundaboutPaths0')
+    # driver.drive_to_structure('RoundaboutPaths3')
 
     while True:
         start = time()

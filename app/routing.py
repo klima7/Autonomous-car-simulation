@@ -3,135 +3,78 @@ from typing import List
 from meta import SimPath
 
 
-class RoutePosition:
+class Position:
 
-    def __init__(self, ordinal=0, offset=0):
-        self.ordinal = ordinal
-        self.offset = offset
-
-    def __iadd__(self, num):
-        self.ordinal += num
-        return self
+    def __init__(self, reversed=False):
+        self.ordinal = 0
+        self.offset = 0
+        self.reversed = reversed
 
     def __index__(self):
         return self.ordinal
 
-    def __repr__(self):
-        return f'RoutePosition({self.ordinal}, {self.offset})'
+    def __eq__(self, other: 'Position'):
+        return self.ordinal == other.ordinal and self.offset == other.offset
 
-    def __eq__(self, other: 'RoutePosition'):
-        return self.ordinal == other.ordinal and self.ordinal == other.offset
+    def __lt__(self, other: 'Position'):
+        return self.ordinal < other.ordinal or self.ordinal == other.ordinal and self.get_offset_from_start() < other.get_offset_from_start()
 
-    def __lt__(self, other: 'RoutePosition'):
-        return self.ordinal < other.ordinal or self.ordinal == other.ordinal and self.offset < other.offset
+    def get_start_offset(self):
+        return 0 if not self.reversed else 1
+
+    def get_end_offset(self):
+        return 1 if not self.reversed else 0
+
+    def get_offset_from_start(self):
+        return abs(self.get_start_offset() - self.offset)
+
+    def add_offset_from_start(self, add_offset):
+        if not self.reversed:
+            self.offset += add_offset
+        else:
+            self.offset -= add_offset
+
+        if self.offset > 1:
+            remainder = self.offset - 1
+            self.offset = 1
+            return remainder
+
+        if self.offset < 0:
+            remainder = -self.offset
+            self.offset = 0
+            return remainder
 
 
 class Route:
 
-    def __init__(self, paths: List[SimPath] = []):
+    def __init__(self, paths: List[SimPath] = None, reversed=False):
         self.paths = paths
+        self.reversed = reversed
 
     def __getitem__(self, item):
         return self.paths[item]
 
-    def __add__(self, other: 'Route'):
-        if len(self.paths) != 0 and len(other.paths) != 0 and self[-1] != other[0]:
-            raise RuntimeError('Provided routes are not connected, so it is impossible to add them')
-        combined_paths = self.paths + other.paths[0:]
-        return Route(combined_paths)
-
-    def __iadd__(self, other: 'Route'):
-        return self + other
-
     def __len__(self):
         return len(self.paths)
 
-    def __repr__(self):
-        text = f'Route('
-        for path in self.paths:
-            text += str(path) + ", "
-        text = text[:-2]
-        return text
+    def get_point(self, pos: Position):
+        path = self.paths[pos.ordinal]
+        return path.get_point_on_path(pos.offset)
 
-    def get_distance_between(self, start: RoutePosition, end: RoutePosition):
-        if start is None or end is None:
-            return None
-        return self.get_distance(end) - self.get_distance(start)
-
-    def get_distance(self, end: RoutePosition):
-        if end is None:
-            return None
-        distance = 0
-        for i in range(end.ordinal):
-            distance += self.paths[i].length
-        distance += self.paths[end.ordinal].length * end.offset
-        return distance
-
-    def get_next_position(self, pos: RoutePosition, predicate):
-        pos = copy(pos)
-        while pos.ordinal < len(self.paths):
-            if predicate(self.paths[pos]):
-                return pos
-            pos.ordinal += 1
-            pos.offset = 0
-        return None
-
-    def get_prev_position(self, pos: RoutePosition, predicate):
-        pos = copy(pos)
-        while pos.ordinal >= 0:
-            if predicate(self.paths[pos]):
-                return pos
-            pos.ordinal -= 1
-            pos.offset = 1
-        return None
-
-    def get_angle(self, pos: RoutePosition):
-        if pos.ordinal < 1 or pos.ordinal+1 >= len(self.paths):
-            return 0
-
-        prev = self.paths[pos.ordinal-1]
-        next = self.paths[pos.ordinal+1]
-        return SimPath.get_angle_between_paths(prev, next)
-
-    def get_signs_between(self, pos1: RoutePosition, pos2: RoutePosition):
-        signs = []
-
-        # First path
-        path = self.paths[pos1.ordinal]
-        for sign in path.signs:
-            if sign.offset >= pos1.offset and (pos2.ordinal > pos1.ordinal or sign.offset <= pos2.offset):
-                signs.append(sign)
-
-        # Middle paths
-        for i in range(pos1.ordinal+1, pos2.ordinal):
-            path = self.paths[i]
-            for sign in path.signs:
-                signs.append(sign)
-
-        # Last path
-        if pos1.ordinal != pos2.ordinal:
-            path = self.paths[pos2.ordinal]
-            for sign in path.signs:
-                if sign.offset <= pos2.offset:
-                    signs.append(sign)
-
-        return signs
-
-    def add_distance_to_position(self, pos: RoutePosition, distance: float):
-
+    def add_distance_to_position(self, pos: Position, distance: float):
         cur_pos = copy(pos)
 
         for path in self.paths[pos.ordinal:]:
-            path_reminder_distance = path.length * (1 - cur_pos.offset)
+            path_reminder_distance = path.length * (1 - cur_pos.get_offset_from_start())
             if path_reminder_distance >= distance:
-                cur_pos.offset += distance / path.length
+                cur_pos.add_offset_from_start(distance / path.length)
                 return cur_pos, 0
             distance -= path_reminder_distance
             cur_pos.ordinal += 1
-            cur_pos.offset = 0
+            cur_pos.offset = pos.get_start_offset()
 
         cur_pos.ordinal -= 1
-        cur_pos.offset = 1
+        cur_pos.offset = pos.get_end_offset()
         return cur_pos, distance
 
 
@@ -143,30 +86,30 @@ class RouteFinder:
             self.prev = None
 
     @staticmethod
-    def find_route(start_path, target):
+    def find_route(start_path, target, backward=False):
         if isinstance(target, SimPath):
-            return RouteFinder.find_route_to_path(start_path, target)
+            return RouteFinder.find_route_to_path(start_path, target, backward)
         else:
-            return RouteFinder.find_route_to_structure(start_path, target)
+            return RouteFinder.find_route_to_structure(start_path, target, backward)
 
     @staticmethod
-    def find_route_to_path(start_path, end_path):
-        return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path == end_path)
+    def find_route_to_path(start_path, end_path, backward=False):
+        return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path == end_path, backward)
 
     @staticmethod
-    def find_route_to_structure(start_path, end_structure):
-        return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path.structure == end_structure)
+    def find_route_to_structure(start_path, end_structure, backward=False):
+        return RouteFinder.find_route_to_path_predicate(start_path, lambda path: path.structure == end_structure, backward)
 
     @staticmethod
-    def find_route_to_path_predicate(start, target_path_predicate):
-        routes = RouteFinder._find_routes_to_path(start, target_path_predicate)
+    def find_route_to_path_predicate(start, target_path_predicate, backward=False):
+        routes = RouteFinder._find_routes_to_path(start, target_path_predicate, backward)
         shortest = RouteFinder._find_shortest_route(routes)
         shortest_way = RouteFinder._create_shortest_route(shortest)
         shortest_way = [start, *shortest_way]
         return Route(shortest_way)
 
     @staticmethod
-    def _find_routes_to_path(start, target_path_predicate):
+    def _find_routes_to_path(start, target_path_predicate, backward=False):
         start = RouteFinder.PathWrapper(start)
 
         open_list = [start]
@@ -179,7 +122,8 @@ class RouteFinder:
                 routes.append(x)
                 continue
             closed_list.append(x)
-            for neighbor in x.path.successors:
+            neighbors = x.path.successors if not backward else x.path.predecessors
+            for neighbor in neighbors:
                 if neighbor in [item.path for item in closed_list]:
                     continue
                 else:

@@ -1,5 +1,5 @@
 from meta import Path
-from routing import RoutePosition, RouteFinder
+from routing import Position, RouteFinder
 from planning import RoutePlanner
 from visual import TrafficLightColor, recognize_light_color
 
@@ -15,7 +15,8 @@ class Task:
 
 class Driver:
 
-    NORMAL_SPEED = 25
+    NORMAL_SPEED = 20
+    BACKWARD_SPEED = 20
     WALKWAY_SPEED = 8
     LIMITED_SPEED = 10
 
@@ -48,35 +49,38 @@ class Driver:
         self.update_speed()
         self.update_traffic_lights()
 
-    def update_speed(self):
-        if self.cur_task is None:
-            self.car.velocity = 0
-        else:
-            self.car.velocity = Driver.NORMAL_SPEED
-
     def update_task(self):
         if self.cur_task is None:
             if self.tasks:
                 self.cur_task = self.tasks.pop(0)
-                self.position = RoutePosition()
-                self.route = RouteFinder.find_route(self.cur_path, self.cur_task.target)
+                self.position = Position(reversed=self.cur_task.backward)
+                self.route = RouteFinder.find_route(self.cur_path, self.cur_task.target, backward=self.cur_task.backward)
+
+    def update_speed(self):
+        if self.cur_task is None:
+            self.car.velocity = 0
+        elif self.cur_task.backward:
+            self.car.velocity = -self.BACKWARD_SPEED
+        else:
+            self.car.velocity = self.NORMAL_SPEED
 
     def follow_route(self):
         if self.cur_task is None:
             return
 
-        path, radius = self.planner.plan_route(self.route, self.position, self.car.gps, self.car.orient)
-        self.car.set_wheels_by_radius(radius)
+        leading_point = self.car.front_point if not self.cur_task.backward else self.car.back_point
+        self.position.offset = self.cur_path.get_closest_offset(leading_point)
+
+        path, radius = self.planner.plan_route(self.route, self.position, leading_point, self.car.orient, backward=self.cur_task.backward)
+        self.car.set_wheels_by_radius(radius if not self.cur_task.backward else -radius)
         self.car.set_planned_path_visualization(path)
 
-        self.position.offset = self.cur_path.get_closest_offset(self.car.gps)
-
-        if self.cur_path == self.route[len(self.route) - 1] and self.position.offset >= self.cur_task.offset:
+        if self.cur_path == self.route[len(self.route) - 1] and self.position.get_offset_from_start() >= self.cur_task.offset:   # TODO
             self.cur_task = None
 
-        elif self.position.offset == 1:
-            self.position += 1
-            self.position.offset = 0
+        elif self.position.offset == self.position.get_end_offset():
+            self.position.ordinal += 1
+            self.position.offset = self.position.get_start_offset()
             self.cur_path = self.route[self.position]
 
     def update_traffic_lights(self):

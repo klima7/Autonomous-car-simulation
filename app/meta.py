@@ -50,20 +50,12 @@ class Path:
         self.estimated_length = self._calc_estimated_length()
 
     @property
-    def start(self):
+    def start_point(self):
         return self.samples[0]
 
     @property
-    def end(self):
+    def end_point(self):
         return self.samples[-1]
-
-    def _calc_estimated_length(self):
-        length = 0
-        prev_sample = self.samples[0]
-        for sample in self.samples[1:]:
-            length += prev_sample.get_distance(sample)
-            prev_sample = sample
-        return length
 
     def get_point_on_path(self, offset):
         assert 0 <= offset <= 1
@@ -79,6 +71,14 @@ class Path:
 
         this_point = Point.interpolate(prev_point, next_point, between_offset)
         return this_point
+
+    def _calc_estimated_length(self):
+        length = 0
+        prev_sample = self.samples[0]
+        for sample in self.samples[1:]:
+            length += prev_sample.get_distance(sample)
+            prev_sample = sample
+        return length
 
     def get_closest_offset(self, point: Point):
         closest_offset = math.inf
@@ -118,10 +118,10 @@ class Path:
 
     @staticmethod
     def get_angle_between_paths(a, b):
-        xa = a.end.x - a.start.x
-        ya = a.end.y - a.start.y
-        xb = b.end.x - b.start.x
-        yb = b.end.y - b.start.y
+        xa = a.end_point.x - a.start_point.x
+        ya = a.end_point.y - a.start_point.y
+        xb = b.end_point.x - b.start_point.x
+        yb = b.end_point.y - b.start_point.y
 
         angle = math.atan2(yb, xb) - math.atan2(ya, xa)
         if angle > math.pi:
@@ -172,7 +172,7 @@ class SimPath(Path):
             for p2 in paths:
                 if p2 is p1:
                     continue
-                if p1.end.get_distance(p2.start) < MetaManager.ACCEPTABLE_POINTS_DISTANCE:
+                if p1.end_point.get_distance(p2.start_point) < MetaManager.ACCEPTABLE_POINTS_DISTANCE:
                     p1.successors.append(p2)
                     p2.predecessors.append(p1)
         return paths
@@ -188,7 +188,7 @@ class SimPath(Path):
                len(self.predecessors) == 1 and isinstance(self.predecessors[0].structure, Roundabout)
 
     def __repr__(self):
-        return f'SimPath({self.start} -> {self.end}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
+        return f'SimPath({self.start_point} -> {self.end_point}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'
 
 
 class Roundabout:

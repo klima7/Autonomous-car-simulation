@@ -15,29 +15,30 @@ class RoutePlanner:
         self.paths = self._generate_paths()
         self.comparison_points = self._generate_comparison_points()
 
-    def plan_route(self, route, route_position, car_gps, car_orientation):
+    def plan_route(self, route, route_position, leading_point, car_orientation, backward=False):
         points = []
+        rotation_angle = car_orientation if not backward else car_orientation + math.pi
         for distance in self.comparison_points:
             position, _ = route.add_distance_to_position(route_position, distance)
-            point = route[position].get_point_on_path(position.offset)
-            point.x -= car_gps.x
-            point.y -= car_gps.y
-            point = point.get_rotated(-car_orientation, Point(0, 0))
+            point = route.get_point(position)
+            point.x -= leading_point.x
+            point.y -= leading_point.y
+            point = point.get_rotated(-rotation_angle, Point(0, 0))
             points.append(point)
 
         best_path = None
         best_factor = math.inf
 
         for path in self.paths:
-            factor = self._sum_points_distances(path, points)
+            factor = self._compare_path(path, points)
             if factor < best_factor:
                 best_factor = factor
                 best_path = path
 
         radius = best_path.radius
 
-        best_path = best_path.get_rotated(car_orientation, Point(0, 0))
-        best_path = best_path.get_translated(car_gps)
+        best_path = best_path.get_rotated(rotation_angle, Point(0, 0))
+        best_path = best_path.get_translated(leading_point)
 
         return best_path, radius
 
@@ -74,9 +75,8 @@ class RoutePlanner:
         path.radius = radius
         return path
 
-    def _sum_points_distances(self, path, points):
+    def _compare_path(self, path, points):
         cumulated_distances = 0
-
         last_closest_offset = path.get_closest_offset(points[-1])
 
         for i in range(self.COMPARISON_DISTANCES_COUNT):
