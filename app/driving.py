@@ -84,6 +84,9 @@ class Driver:
             self.cur_path = self.route[self.position]
 
     def update_traffic_lights(self):
+        if self.cur_task is None or self.cur_task.backward:
+            return
+
         color = recognize_light_color(self.car.view)
         if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
             self.car.velocity = 0
