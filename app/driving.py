@@ -43,7 +43,7 @@ class Driver:
         task = Task(path, offset, backward)
         self.tasks.append(task)
 
-    def drive(self):
+    def update(self):
         self.update_task()
         self.follow_route()
         self.update_speed()
