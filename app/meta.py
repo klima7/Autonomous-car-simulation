@@ -227,6 +227,16 @@ class Crossing:
         return f'Crossing(name={self.name}, paths={len(self.paths)})'
 
 
+class Parking:
+
+    def __init__(self, raw_meta):
+        self.name = raw_meta[0].decode("utf-8")
+        self.paths = SimPath.create_paths_list(raw_meta[1], self)
+
+    def __repr__(self):
+        return f'Parking(name={self.name}, paths={len(self.paths)})'
+
+
 class MetaManager:
 
     ACCEPTABLE_POINTS_DISTANCE = 0.01
@@ -237,6 +247,7 @@ class MetaManager:
         self.roundabouts = []
         self.streets = []
         self.crossings = []
+        self.parkings = []
         self.paths = []
 
         self._fetch_meta()
@@ -258,7 +269,7 @@ class MetaManager:
             
     def _fetch_meta(self):
         _, *meta = self._client.simxCallScriptFunction("get_meta@Meta", "sim.scripttype_childscript", [], self._client.simxServiceCall())
-        roundabouts_meta, streets_meta, crossings_meta = meta[0]
+        roundabouts_meta, streets_meta, crossings_meta, parkings_meta = meta[0]
 
         for roundabout_meta in roundabouts_meta:
             roundabout = Roundabout(roundabout_meta)
@@ -274,3 +285,8 @@ class MetaManager:
             crossing = Crossing(crossing_meta)
             self.crossings.append(crossing)
             self.paths.extend(crossing.paths)
+
+        for parking_meta in parkings_meta:
+            parking = Parking(parking_meta)
+            self.parkings.append(parking)
+            self.paths.extend(parking.paths)
