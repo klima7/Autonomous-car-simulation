@@ -13,10 +13,21 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
     mm = MetaManager(client)
     driver = Driver(car, mm)
 
-    # Parking
-    driver.drive_to_path('Path197', offset=0.7)
-    driver.drive_to_path('Path192', offset=0.1, backward=True)
+    # Straight Parking
+    driver.drive_to_path('Path197', offset=0.4)
+    driver.drive_to_path('Path192', offset=0.4, backward=True)
+    driver.drive_to_path('Path194', offset=0.4)
+    driver.drive_to_path('Path192', offset=0.3, backward=True)
+    driver.drive_to_path('Path195', offset=0.4)
+    driver.drive_to_path('Path192', offset=0.3, backward=True)
     driver.drive_to_path('Path170', offset=0.5)
+
+    # Skewed parking
+    driver.drive_to_path('Path218', offset=0.5)
+    driver.drive_to_path('Path213', offset=0.0, backward=True)
+    driver.drive_to_path('Path224', offset=0.5)
+    driver.drive_to_path('Path230', offset=0.0, backward=True)
+    driver.drive_to_path('Path152', offset=0.5)
 
     # Reversing
     driver.drive_to_path('Path29', offset=0.1)
