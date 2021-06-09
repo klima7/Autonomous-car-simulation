@@ -15,10 +15,11 @@ class Task:
 
 class Driver:
 
-    NORMAL_SPEED = 20
-    BACKWARD_SPEED = 20
-    WALKWAY_SPEED = 8
-    LIMITED_SPEED = 10
+    # Speed in simulation units per second
+    NORMAL_SPEED = 1
+    BACKWARD_SPEED = 1
+    WALKWAY_SPEED = 0.4
+    LIMITED_SPEED = 0.5
 
     def __init__(self, car, mm):
         self.car = car
