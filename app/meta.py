@@ -1,7 +1,6 @@
 import math
 from enum import Enum
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from util import Point
@@ -92,11 +91,6 @@ class Path:
                 closest_distance = distance
 
         return closest_offset
-
-    def plot(self):
-        xs = [point.x for point in self.samples]
-        ys = [point.y for point in self.samples]
-        plt.plot(xs, ys)
 
     def get_rotated(self, angle, center):
         rotated_samples = []
