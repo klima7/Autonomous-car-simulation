@@ -1,7 +1,8 @@
-from meta import Path
+from meta import Path, Crossing
 from routing import Position, RouteFinder
 from planning import RoutePlanner
 from visual import TrafficLightColor, recognize_light_color
+from car import Car
 
 
 class Task:
@@ -49,6 +50,7 @@ class Driver:
         self.follow_route()
         self.update_speed()
         self.update_traffic_lights()
+        self.update_car_lights()
 
     def update_task(self):
         if self.cur_task is None:
@@ -91,3 +93,26 @@ class Driver:
         color = recognize_light_color(self.car.view)
         if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
             self.car.velocity = 0
+
+    def update_car_lights(self):
+        self.car.running_lights = True
+        self.car.stop_lights = self.car.velocity == 0
+
+        if self.route is None:
+            self.car.indicators_lights = Car.INDICATORS_DISABLED
+            return
+
+        next_crossing_pos = self.route.get_next_position(self.position, lambda path: isinstance(path.structure, Crossing) or path.is_roundabout_exit())
+        next_crossing_distance = self.route.get_distance_between(self.position, next_crossing_pos)
+
+        prev_crossing_pos = self.route.get_prev_position(self.position, lambda path: isinstance(path.structure, Crossing) or path.is_roundabout_exit())
+        prev_crossing_distance = self.route.get_distance_between(prev_crossing_pos, self.position)
+
+        if next_crossing_pos is not None and next_crossing_distance < 3.5:
+            angle = self.route.get_angle(next_crossing_pos)
+            if angle > 0.2:
+                self.car.indicators_lights = Car.INDICATORS_LEFT
+            elif angle < -0.2:
+                self.car.indicators_lights = Car.INDICATORS_RIGHT
+        if prev_crossing_pos is not None and 3 > prev_crossing_distance > 2:
+            self.car.indicators_lights = Car.INDICATORS_DISABLED

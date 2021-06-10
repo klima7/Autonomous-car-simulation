@@ -1,6 +1,6 @@
 from copy import copy
 from typing import List
-from meta import SimPath
+from meta import Path, SimPath
 
 
 class Position:
@@ -76,6 +76,46 @@ class Route:
         cur_pos.ordinal -= 1
         cur_pos.offset = pos.get_end_offset()
         return cur_pos, distance
+
+    def get_next_position(self, pos: Position, predicate):
+        pos = copy(pos)
+        while pos.ordinal < len(self.paths):
+            if predicate(self.paths[pos]):
+                return pos
+            pos.ordinal += 1
+            pos.offset = pos.get_start_offset()
+        return None
+
+    def get_prev_position(self, pos: Position, predicate):
+        pos = copy(pos)
+        while pos.ordinal >= 0:
+            if predicate(self.paths[pos]):
+                return pos
+            pos.ordinal -= 1
+            pos.offset = pos.get_end_offset()
+        return None
+
+    def get_distance_between(self, start: Position, end: Position):
+        if start is None or end is None:
+            return None
+        return self.get_distance(end) - self.get_distance(start)
+
+    def get_distance(self, end: Position):
+        if end is None:
+            return None
+        distance = 0
+        for i in range(end.ordinal):
+            distance += self.paths[i].length
+        distance += self.paths[end.ordinal].length * end.get_offset_from_start()
+        return distance
+
+    def get_angle(self, pos: Position):
+        if pos.ordinal < 1 or pos.ordinal+1 >= len(self.paths):
+            return 0
+
+        prev = self.paths[pos.ordinal-1]
+        next = self.paths[pos.ordinal+1]
+        return Path.get_angle_between_paths(prev, next)
 
 
 class RouteFinder:
