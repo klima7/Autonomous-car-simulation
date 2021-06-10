@@ -35,7 +35,7 @@ def check_light_color(img, lower, upper):
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        if (-1 <= w - h <= 1) and cv2.contourArea(contour) > 40:
+        if (abs(w - h) <= 30) and cv2.contourArea(contour) > 40:
             return True
 
     return False
