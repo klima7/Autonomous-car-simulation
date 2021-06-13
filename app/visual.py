@@ -1,11 +1,15 @@
-import sys
-
 import cv2
 import numpy as np
 from enum import Enum, auto
+import util
+import math
 
 
 SIGN_HEAD2STICK_FACTOR = 0.57
+PERSPECTIVE_ANGLE = 60
+CAMERA_IMAGE_HEIGHT = 512
+CAMERA_IMAGE_WIDTH = 512
+SIGN_REAL_HEIGHT = 0.48978
 
 
 def find_signs(image):
@@ -39,8 +43,23 @@ def find_signs_sticks(hsv_image):
 
 def find_sign_head(stick):
     x, y, h = stick
+    print(calc_distance(h), util.rad2deg(calc_angle(x)))
     head_size = int(SIGN_HEAD2STICK_FACTOR * h)
     return x - head_size//2, y - head_size, head_size, head_size
+
+
+def calc_distance(height):
+    numerator = CAMERA_IMAGE_HEIGHT * SIGN_REAL_HEIGHT
+    denominator = 2 * height * math.tan(util.deg2rad(PERSPECTIVE_ANGLE/2))
+    return numerator / denominator
+
+
+def calc_angle(x):
+    diff = x - CAMERA_IMAGE_WIDTH / 2
+    a_diff = abs(diff)
+    a_angle = a_diff * util.deg2rad(PERSPECTIVE_ANGLE/2) / (CAMERA_IMAGE_WIDTH / 2)
+    angle = a_angle if diff > 0 else -a_angle
+    return angle
 
 
 def draw_rectangles(image, rectangles):
