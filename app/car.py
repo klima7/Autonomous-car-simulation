@@ -24,7 +24,7 @@ class Car:
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
-        self._client.simxGetVisionSensorImage(self.camera_handle, False, self._client.simxDefaultSubscriber(self._view_received_handler, 10))
+        self._client.simxGetVisionSensorImage(self.camera_handle, False, self._client.simxDefaultSubscriber(self._view_received_handler, 1))
 
         self.velocity = 0
         self.left_angle = 0

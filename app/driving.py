@@ -1,7 +1,7 @@
 from meta import Path, Crossing
 from routing import Position, RouteFinder
 from planning import RoutePlanner
-from visual import TrafficLightColor, recognize_light_color
+from visual import TrafficLightColor, recognize_light_color, find_signs
 from car import Car
 
 
@@ -51,6 +51,7 @@ class Driver:
         self.update_speed()
         self.update_traffic_lights()
         self.update_car_lights()
+        find_signs(self.car.view)
 
     def update_task(self):
         if self.cur_task is None:

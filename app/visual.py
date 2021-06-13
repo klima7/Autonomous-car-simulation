@@ -1,6 +1,53 @@
+import sys
+
 import cv2
 import numpy as np
 from enum import Enum, auto
+
+
+SIGN_HEAD2STICK_FACTOR = 0.57
+
+
+def find_signs(image):
+    if image is None:
+        return
+
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    sticks = find_signs_sticks(hsv_image)
+    heads = [find_sign_head(stick) for stick in sticks]
+    draw_rectangles(hsv_image, heads)
+
+    cv2.imshow('Frame', cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR))
+    cv2.waitKey(1)
+
+
+def find_signs_sticks(hsv_image):
+    sticks = []
+
+    mask = cv2.inRange(hsv_image, np.array([0, 0, 70]), np.array([3, 3, 85]))
+
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(hsv_image, contours, -1, (0, 0, 255), 1)
+    for i in range(len(contours)):
+        contour = contours[i]
+        x, y, w, h = cv2.boundingRect(contour)
+        if h > 15:
+            sticks.append((x+w//2, y, h))
+
+    return sticks
+
+
+def find_sign_head(stick):
+    x, y, h = stick
+    head_size = int(SIGN_HEAD2STICK_FACTOR * h)
+    return x - head_size//2, y - head_size, head_size, head_size
+
+
+def draw_rectangles(image, rectangles):
+    for rectangle in rectangles:
+        start = (rectangle[0], rectangle[1])
+        end = (rectangle[0]+rectangle[2], rectangle[1]+rectangle[3])
+        cv2.rectangle(image, start, end, (0, 0, 0), 2)
 
 
 class TrafficLightColor(Enum):
@@ -39,3 +86,4 @@ def check_light_color(img, lower, upper):
             return True
 
     return False
+
