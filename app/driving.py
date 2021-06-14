@@ -51,7 +51,10 @@ class Driver:
         self.update_speed()
         self.update_traffic_lights()
         self.update_car_lights()
-        find_signs(self.car.view)
+
+        view = find_signs(self.car.view)
+        if view is not None:
+            self.car.set_view_visualization(view)
 
     def update_task(self):
         if self.cur_task is None:

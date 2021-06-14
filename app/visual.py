@@ -6,8 +6,8 @@ import math
 
 
 SIGN_HEAD2STICK_FACTOR = 0.57
-PERSPECTIVE_ANGLE = 60
-CAMERA_IMAGE_HEIGHT = 512
+PERSPECTIVE_ANGLE = 70
+CAMERA_IMAGE_HEIGHT = 256
 CAMERA_IMAGE_WIDTH = 512
 SIGN_REAL_HEIGHT = 0.48978
 
@@ -107,7 +107,7 @@ class FoundSign:
 
 def find_signs(image):
     if image is None:
-        return
+        return None
 
     hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
@@ -117,10 +117,8 @@ def find_signs(image):
     for sign in signs:
         if sign.head_image is not None:
             sign.draw(hsv_image)
-    cv2.imshow('Frame', cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR))
-    cv2.waitKey(1)
 
-    return signs
+    return cv2.cvtColor(hsv_image, cv2.COLOR_HSV2RGB)
 
 
 def find_sticks(hsv_image):
@@ -130,7 +128,7 @@ def find_sticks(hsv_image):
     for i in range(len(contours)):
         contour = contours[i]
         x, y, w, h = cv2.boundingRect(contour)
-        if h > 15:
+        if h > 25:
             sticks.append((x+w//2, y, h))
     return sticks
 

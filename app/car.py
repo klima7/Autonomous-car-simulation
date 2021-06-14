@@ -24,6 +24,7 @@ class Car:
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
+        _, self.view_visualization_handle = self._client.simxGetObjectHandle('ViewVisualization', self._client.simxServiceCall())
         self._client.simxGetVisionSensorImage(self.camera_handle, False, self._client.simxDefaultSubscriber(self._view_received_handler, 1))
 
         self.velocity = 0
@@ -43,6 +44,7 @@ class Car:
 
     def _view_received_handler(self, data):
         _, size, view = data
+        # self.set_view_visualization(view)
         view = [b for b in view]
         view = np.array(view, dtype=np.uint8)
         view.resize((size[1], size[0], 3))
@@ -68,6 +70,13 @@ class Car:
     def set_planned_path_visualization(self, path):
         data = [[s.x, s.y] for s in path.samples]
         self._client.simxCallScriptFunction("set_path@PlannedRouteVisualization", "sim.scripttype_childscript", data, self._client.simxDefaultPublisher())
+
+    def set_view_visualization(self, view_rgb):
+        view = np.flipud(view_rgb)
+        view = view.flatten(order='C')
+        view = view.astype(np.uint8)
+        image_bytes = view.tobytes()
+        self._client.simxSetVisionSensorImage(self.view_visualization_handle, False, image_bytes, self._client.simxDefaultPublisher())
 
     def apply(self):
         steering_data = [self.velocity, self.left_angle, self.right_angle]
