@@ -14,10 +14,13 @@ SIGN_REAL_HEIGHT = 0.48978
 
 class FoundSign:
 
+    IMAGE_SIZE = 25
+
     def __init__(self, stick, image):
         self.stick = stick
         self.head = self.find_sign_head()
         self.head_image = self.cut_head_image(image)
+        self.scaled_head_image = self.scale_head_image()
         self.type = None
 
     def find_sign_head(self):
@@ -30,6 +33,14 @@ class FoundSign:
         if x < 0 or y < 0 or x + a >= CAMERA_IMAGE_WIDTH or y + a >= CAMERA_IMAGE_HEIGHT:
             return None
         return image[y:y + a, x:x + a]
+
+    def scale_head_image(self):
+        if self.head_image is None:
+            return None
+
+        size = [self.IMAGE_SIZE, self.IMAGE_SIZE]
+        scaled = cv2.resize(self.head_image, size)
+        return scaled
 
     def get_distance(self):
         height = self.stick[2]
@@ -55,7 +66,13 @@ class FoundSign:
         cv2.line(hsv_image, stick_start, stick_end, (0, 0, 0), 2)
 
         font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(hsv_image, 'Sign', (head_start[0]-50, head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+        cv2.putText(hsv_image, 'Sign', (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+
+        x = head_start[0]-self.IMAGE_SIZE
+        y = head_start[1]-20
+        if x >= 0 and y >= 0:
+            a = self.scaled_head_image.shape[0]
+            hsv_image[y:y+a, x:x+a] = self.scaled_head_image
 
 
 def find_signs(image):
@@ -68,7 +85,8 @@ def find_signs(image):
     signs = [FoundSign(stick, hsv_image) for stick in sticks]
 
     for sign in signs:
-        sign.draw(hsv_image)
+        if sign.head_image is not None:
+            sign.draw(hsv_image)
     cv2.imshow('Frame', cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR))
     cv2.waitKey(1)
 
@@ -77,7 +95,6 @@ def find_sticks(hsv_image):
     sticks = []
     mask = cv2.inRange(hsv_image, np.array([0, 0, 70]), np.array([3, 3, 85]))
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cv2.drawContours(hsv_image, contours, -1, (0, 0, 255), 1)
     for i in range(len(contours)):
         contour = contours[i]
         x, y, w, h = cv2.boundingRect(contour)
