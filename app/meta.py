@@ -57,7 +57,7 @@ class Path:
         return self.samples[-1]
 
     def get_point_on_path(self, offset):
-        assert 0 <= offset <= 1
+        offset = min(offset, 1)
 
         between_index = len(self.samples) * offset
         between_offset = between_index % 1

@@ -12,6 +12,19 @@ CAMERA_IMAGE_WIDTH = 512
 SIGN_REAL_HEIGHT = 0.48978
 
 
+class SignType(Enum):
+    STOP = 0
+    WALKWAY = 1
+    ROUNDABOUT = 2
+    PARKING = 3
+    LIMIT = 4
+    ONEWAY = 5
+    DEADEND = 6
+    TRAFFIC_LIGHTS = 7
+    UNKNOWN = 8
+    REVERSED = 9
+
+
 class FoundSign:
 
     IMAGE_SIZE = 25
@@ -21,7 +34,7 @@ class FoundSign:
         self.head = self.find_sign_head()
         self.head_image = self.cut_head_image(image)
         self.scaled_head_image = self.scale_head_image()
-        self.type = None
+        self.type = self.recognize_sign()
 
     def find_sign_head(self):
         x, y, h = self.stick
@@ -41,6 +54,23 @@ class FoundSign:
         size = [self.IMAGE_SIZE, self.IMAGE_SIZE]
         scaled = cv2.resize(self.head_image, size)
         return scaled
+
+    def recognize_sign(self):
+        if self.head_image is None:
+            return SignType.UNKNOWN
+        if self.is_reversed():
+            return SignType.REVERSED
+        return SignType.UNKNOWN
+
+    def is_reversed(self):
+        mask = cv2.inRange(self.head_image, np.array([20, 0, 190]), np.array([40, 50, 250]))
+        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        full_height = self.head[2]
+        for contour in contours:
+            _, _, _, h = cv2.boundingRect(contour)
+            if cv2.contourArea(contour)/h >= 5 and h >= full_height / 4 * 3:
+                return True
+        return False
 
     def get_distance(self):
         height = self.stick[2]
@@ -65,8 +95,8 @@ class FoundSign:
         stick_end = (self.stick[0], self.stick[1]+self.stick[2])
         cv2.line(hsv_image, stick_start, stick_end, (0, 0, 0), 2)
 
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(hsv_image, 'Sign', (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+        font = cv2.FONT_HERSHEY_PLAIN
+        cv2.putText(hsv_image, self.type.name, (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
         x = head_start[0]-self.IMAGE_SIZE
         y = head_start[1]-20
@@ -90,10 +120,12 @@ def find_signs(image):
     cv2.imshow('Frame', cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR))
     cv2.waitKey(1)
 
+    return signs
+
 
 def find_sticks(hsv_image):
     sticks = []
-    mask = cv2.inRange(hsv_image, np.array([0, 0, 70]), np.array([3, 3, 85]))
+    mask = cv2.inRange(hsv_image, np.array([20, 0, 105]), np.array([40, 10, 120]))
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for i in range(len(contours)):
         contour = contours[i]
