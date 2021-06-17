@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 from enum import Enum, auto
+from keras.models import load_model
 import util
+from time import time
 import math
 
 
@@ -10,6 +12,10 @@ PERSPECTIVE_ANGLE = 70
 CAMERA_IMAGE_HEIGHT = 256
 CAMERA_IMAGE_WIDTH = 512
 SIGN_REAL_HEIGHT = 0.48978
+
+
+model = load_model("../nn/model.h5")
+model.compile()
 
 
 class SignType(Enum):
@@ -21,13 +27,13 @@ class SignType(Enum):
     ONEWAY = 5
     DEADEND = 6
     TRAFFIC_LIGHTS = 7
-    UNKNOWN = 8
-    REVERSED = 9
+    REVERSED = 8
+    UNKNOWN = 9
 
 
 class FoundSign:
 
-    IMAGE_SIZE = 25
+    IMAGE_SIZE = 24
 
     def __init__(self, stick, image):
         self.stick = stick
@@ -56,11 +62,22 @@ class FoundSign:
         return scaled
 
     def recognize_sign(self):
+        # return SignType.UNKNOWN
+
         if self.head_image is None:
             return SignType.UNKNOWN
-        if self.is_reversed():
-            return SignType.REVERSED
-        return SignType.UNKNOWN
+
+        gray = cv2.cvtColor(cv2.cvtColor(self.head_image, cv2.COLOR_HSV2BGR), cv2.COLOR_BGR2GRAY)
+        scaled = cv2.resize(gray, (16, 16))
+        scaled = scaled.astype(np.float32) / 255
+        scaled = scaled.flatten()
+
+        start = time()
+        res = model.predict(np.array([scaled]))
+        res = np.argmax(res[0])
+        sign = SignType(res)
+        print(sign, time()-start)
+        return sign
 
     def is_reversed(self):
         mask = cv2.inRange(self.head_image, np.array([20, 0, 190]), np.array([40, 50, 250]))
@@ -97,12 +114,6 @@ class FoundSign:
 
         font = cv2.FONT_HERSHEY_PLAIN
         cv2.putText(hsv_image, self.type.name, (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
-
-        x = head_start[0]-self.IMAGE_SIZE
-        y = head_start[1]-20
-        if x >= 0 and y >= 0:
-            a = self.scaled_head_image.shape[0]
-            hsv_image[y:y+a, x:x+a] = self.scaled_head_image
 
 
 def find_signs(image):
