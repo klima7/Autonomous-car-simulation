@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from app.constants import SignType
 from enum import Enum, auto
 from keras.models import load_model
 import util
@@ -15,22 +16,9 @@ SIGN_REAL_HEIGHT = 0.48978
 
 
 print('Loading Neural Network')
-model = load_model("../nn/model.h5")
+model = load_model("../nn.h5")
 model.compile()
 model.predict(np.zeros((1, 16, 16, 1), dtype=np.float))
-
-
-class SignType(Enum):
-    STOP = 0
-    WALKWAY = 1
-    ROUNDABOUT = 2
-    PARKING = 3
-    LIMIT = 4
-    ONEWAY = 5
-    DEADEND = 6
-    TRAFFIC_LIGHTS = 7
-    REVERSED = 8
-    UNKNOWN = 9
 
 
 class FoundSign:

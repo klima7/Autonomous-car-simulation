@@ -1,27 +1,24 @@
-import math
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'    # Disable tensorflow logging
+
+import math
 import random
-from enum import Enum
 import cv2
 import numpy as np
 import tensorflow as tf
-from keras.models import load_model
-from time import time
+import keras
+from keras.layers import InputLayer, Conv2D, Flatten, Dense
+from app.constants import SignType
 
-from nn.signn import model
 
-
-class SignType(Enum):
-    STOP = 0
-    WALKWAY = 1
-    ROUNDABOUT = 2
-    PARKING = 3
-    LIMIT = 4
-    ONEWAY = 5
-    DEADEND = 6
-    TRAFFIC_LIGHTS = 7
-    REVERSED = 8
-    UNKNOWN = 9
+model = keras.models.Sequential([
+    InputLayer(input_shape=(16, 16, 1)),
+    Conv2D(4, (3, 3), activation='relu'),
+    Flatten(),
+    Dense(150, activation='relu'),
+    Dense(70, activation='relu'),
+    Dense(9, activation='softmax')
+])
 
 
 def load_images_from_dir(directory, max_count=math.inf):
@@ -59,6 +56,7 @@ def load_training_data(directory):
     oneway = load_images_from_dir(os.path.join(directory, 'oneway', 'normal'))
     deadend = load_images_from_dir(os.path.join(directory, 'deadend', 'normal'))
     lights = load_images_from_dir(os.path.join(directory, 'lights', 'normal'))
+
     reversed = [
         *load_images_from_dir(os.path.join(directory, 'stop', 'reversed'), max_count=rev_count),
         *load_images_from_dir(os.path.join(directory, 'walkway', 'reversed'), max_count=rev_count),
@@ -68,8 +66,6 @@ def load_training_data(directory):
         *load_images_from_dir(os.path.join(directory, 'oneway', 'reversed'), max_count=rev_count),
         *load_images_from_dir(os.path.join(directory, 'deadend', 'reversed'), max_count=rev_count),
     ]
-
-    print('reversed', len(reversed))
 
     data = {
         SignType.STOP: stop,
@@ -86,7 +82,7 @@ def load_training_data(directory):
     return data
 
 
-def create_training_sets(data):
+def prepare_training_data(data):
     rows = []
 
     for label, images in data.items():
@@ -104,13 +100,9 @@ def create_training_sets(data):
     return images, labels
 
 
-data = load_training_data('images/gray16')
-images, labels = create_training_sets(data)
+data = load_training_data('../images/gray16')
+images, labels = prepare_training_data(data)
 
-# model = load_model('model.h5')
-model.fit(images, labels, batch_size=16, epochs=50, verbose=1)
-model.save('model.h5')
-
-start = time()
-print(np.argmax(model.predict(images[0:1])[0]))
-print(time() - start)
+model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(images, labels, batch_size=16, epochs=20, verbose=1)
+model.save('../nn.h5')
