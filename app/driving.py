@@ -13,7 +13,7 @@ class Task:
         self.offset = offset
         self.backward = backward
 
-counter = 0
+
 class Driver:
 
     # Speed in simulation units per second
@@ -26,6 +26,7 @@ class Driver:
         self.car = car
         self.mm = mm
         self.planner = RoutePlanner()
+        self.counter = 0
 
         self.tasks = []
         self.cur_task = None
@@ -51,13 +52,7 @@ class Driver:
         self.update_speed()
         self.update_traffic_lights()
         self.update_car_lights()
-
-        global counter
-        if counter % 5 == 0:
-            view = find_signs(self.car.view)
-            if view is not None:
-                self.car.set_view_visualization(view)
-        counter += 1
+        self.update_signs()
 
     def update_task(self):
         if self.cur_task is None:
@@ -100,6 +95,13 @@ class Driver:
         color = recognize_light_color(self.car.view)
         if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
             self.car.velocity = 0
+
+    def update_signs(self):
+        if self.counter % 5 == 0:
+            signs, view = find_signs(self.car.view)
+            if view is not None:
+                self.car.set_view_visualization(view)
+        self.counter += 1
 
     def update_car_lights(self):
         self.car.running_lights = True

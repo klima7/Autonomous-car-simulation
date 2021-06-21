@@ -1,10 +1,8 @@
 import cv2
 import numpy as np
-from app.constants import SignType
-from enum import Enum, auto
+from app.constants import SignType, TrafficLightColor
 from keras.models import load_model
 import util
-from time import time
 import math
 
 
@@ -23,37 +21,25 @@ model.predict(np.zeros((1, 16, 16, 1), dtype=np.float))
 
 class FoundSign:
 
-    IMAGE_SIZE = 24
-
     def __init__(self, stick, image):
         self.stick = stick
-        self.head = self.find_sign_head()
-        self.head_image = self.cut_head_image(image)
-        self.scaled_head_image = self.scale_head_image()
-        self.type = self.recognize_sign()
+        self.head_pos = self._locate_sign_head()
+        self.head_image = self._cut_head_image(image)
+        self.type = SignType.UNKNOWN
+        self.recognize()
 
-    def find_sign_head(self):
+    def _locate_sign_head(self):
         x, y, h = self.stick
         head_size = int(SIGN_HEAD2STICK_FACTOR * h)
         return x - head_size // 2, y - head_size, head_size
 
-    def cut_head_image(self, image):
-        x, y, a = self.head
+    def _cut_head_image(self, image):
+        x, y, a = self.head_pos
         if x < 0 or y < 0 or x + a >= CAMERA_IMAGE_WIDTH or y + a >= CAMERA_IMAGE_HEIGHT:
             return None
         return image[y:y + a, x:x + a]
 
-    def scale_head_image(self):
-        if self.head_image is None:
-            return None
-
-        size = [self.IMAGE_SIZE, self.IMAGE_SIZE]
-        scaled = cv2.resize(self.head_image, size)
-        return scaled
-
-    def recognize_sign(self):
-        # return SignType.UNKNOWN
-
+    def recognize(self):
         if self.head_image is None:
             return SignType.UNKNOWN
 
@@ -61,32 +47,30 @@ class FoundSign:
         scaled = cv2.resize(gray, (16, 16))
         scaled = np.reshape(scaled, (16, 16, 1))
         scaled = scaled.astype(np.float32) / 255
-        # scaled = scaled.flatten()
 
-        start = time()
         res = model.predict(np.array([scaled]))
-        print(time() - start)
         res = np.argmax(res[0])
-        sign = SignType(res)
-        return sign
+        self.type = SignType(res)
 
-    def is_reversed(self):
+    def _is_reversed(self):
         mask = cv2.inRange(self.head_image, np.array([20, 0, 190]), np.array([40, 50, 250]))
         contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        full_height = self.head[2]
+        full_height = self.head_pos[2]
         for contour in contours:
             _, _, _, h = cv2.boundingRect(contour)
             if cv2.contourArea(contour)/h >= 5 and h >= full_height / 4 * 3:
                 return True
         return False
 
-    def get_distance(self):
+    @property
+    def distance(self):
         height = self.stick[2]
         numerator = CAMERA_IMAGE_HEIGHT * SIGN_REAL_HEIGHT
         denominator = 2 * height * math.tan(util.deg2rad(PERSPECTIVE_ANGLE/2))
         return numerator / denominator
 
-    def get_angle(self):
+    @property
+    def angle(self):
         x = self.stick[0]
         diff = x - CAMERA_IMAGE_WIDTH / 2
         a_diff = abs(diff)
@@ -95,8 +79,8 @@ class FoundSign:
         return angle
 
     def draw(self, hsv_image):
-        head_start = (self.head[0], self.head[1])
-        head_end = (self.head[0]+self.head[2], self.head[1]+self.head[2])
+        head_start = (self.head_pos[0], self.head_pos[1])
+        head_end = (self.head_pos[0] + self.head_pos[2], self.head_pos[1] + self.head_pos[2])
         cv2.rectangle(hsv_image, head_start, head_end, (0, 0, 0), 2)
 
         stick_start = (self.stick[0], self.stick[1])
@@ -109,21 +93,21 @@ class FoundSign:
 
 def find_signs(image):
     if image is None:
-        return None
+        return None, None
 
     hsv_image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 
-    sticks = find_sticks(hsv_image)
+    sticks = _find_sticks(hsv_image)
     signs = [FoundSign(stick, hsv_image) for stick in sticks]
 
     for sign in signs:
         if sign.head_image is not None:
             sign.draw(hsv_image)
 
-    return cv2.cvtColor(hsv_image, cv2.COLOR_HSV2RGB)
+    return signs, cv2.cvtColor(hsv_image, cv2.COLOR_HSV2RGB)
 
 
-def find_sticks(hsv_image):
+def _find_sticks(hsv_image):
     sticks = []
     mask = cv2.inRange(hsv_image, np.array([20, 0, 105]), np.array([40, 10, 120]))
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -135,32 +119,25 @@ def find_sticks(hsv_image):
     return sticks
 
 
-class TrafficLightColor(Enum):
-    RED = auto()
-    YELLOW = auto()
-    GREEN = auto()
-    NONE = auto()
-
-
 def recognize_light_color(image):
     if image is None:
         return TrafficLightColor.NONE
 
     image = image[:, image.shape[1] // 2:]
 
-    if check_light_color(image, [0, 240, 150], [5, 255, 190]):
+    if _check_light_color(image, [0, 240, 150], [5, 255, 190]):
         return TrafficLightColor.RED
 
-    if check_light_color(image, [58, 240, 150], [62, 255, 190]):
+    if _check_light_color(image, [58, 240, 150], [62, 255, 190]):
         return TrafficLightColor.GREEN
 
-    if check_light_color(image, [28, 240, 150], [30, 255, 190]):
+    if _check_light_color(image, [28, 240, 150], [30, 255, 190]):
         return TrafficLightColor.YELLOW
 
     return TrafficLightColor.NONE
 
 
-def check_light_color(img, lower, upper):
+def _check_light_color(img, lower, upper):
     image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     mask = cv2.inRange(image, np.array(lower), np.array(upper))
 

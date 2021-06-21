@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 
 
 class SignType(Enum):
@@ -12,3 +12,10 @@ class SignType(Enum):
     TRAFFIC_LIGHTS = 7
     REVERSED = 8
     UNKNOWN = 9
+
+
+class TrafficLightColor(Enum):
+    RED = auto()
+    YELLOW = auto()
+    GREEN = auto()
+    NONE = auto()
