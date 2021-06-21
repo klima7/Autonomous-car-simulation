@@ -17,7 +17,7 @@ SIGN_REAL_HEIGHT = 0.48978
 print('Loading Neural Network')
 model = load_model("../nn/model.h5")
 model.compile()
-model.predict(np.zeros((1, 256), dtype=np.float))
+model.predict(np.zeros((1, 16, 16, 1), dtype=np.float))
 
 
 class SignType(Enum):
@@ -71,8 +71,9 @@ class FoundSign:
 
         gray = cv2.cvtColor(cv2.cvtColor(self.head_image, cv2.COLOR_HSV2BGR), cv2.COLOR_BGR2GRAY)
         scaled = cv2.resize(gray, (16, 16))
+        scaled = np.reshape(scaled, (16, 16, 1))
         scaled = scaled.astype(np.float32) / 255
-        scaled = scaled.flatten()
+        # scaled = scaled.flatten()
 
         start = time()
         res = model.predict(np.array([scaled]))

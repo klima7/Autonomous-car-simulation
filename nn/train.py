@@ -100,7 +100,7 @@ def create_training_sets(data):
     labels = np.array([row[1].value for row in rows])
     labels = tf.one_hot(labels, 9)
 
-    images = np.reshape(images, (images.shape[0], -1))
+    images = np.reshape(images, (images.shape[0], 16, 16, 1))
     return images, labels
 
 
