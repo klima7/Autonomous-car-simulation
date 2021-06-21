@@ -26,13 +26,10 @@ class RemoteApiClient:
         self._serviceClient.set_option(3,timeout*1000) #read timeout
         self._defaultPublisher= b0.Publisher(self._node, self._defaultPublisherTopic)
         self._defaultSubscriber= b0.Subscriber(self._node, self._defaultSubscriberTopic, None) # we will poll the socket
-        print('\n  Running B0 Remote API client with channel name ['+channelName+']')
-        print('  make sure that: 1) the B0 resolver is running')
-        print('                  2) CoppeliaSim is running the B0 Remote API server with the same channel name')
-        print('  Initializing...\n')
+        print('Running B0 Remote API client with channel name '+channelName)
         self._node.init()
         self._handleFunction('inactivityTolerance',[inactivityToleranceInSec],self._serviceCallTopic)
-        print('\n  Connected!\n')
+        print('Connected!')
         self._allSubscribers={}
         self._allDedicatedPublishers={}
         self._setupSubscribersAsynchronously=setupSubscribersAsynchronously

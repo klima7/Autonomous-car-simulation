@@ -14,8 +14,10 @@ CAMERA_IMAGE_WIDTH = 512
 SIGN_REAL_HEIGHT = 0.48978
 
 
+print('Loading Neural Network')
 model = load_model("../nn/model.h5")
 model.compile()
+model.predict(np.zeros((1, 256), dtype=np.float))
 
 
 class SignType(Enum):
@@ -74,9 +76,9 @@ class FoundSign:
 
         start = time()
         res = model.predict(np.array([scaled]))
+        print(time() - start)
         res = np.argmax(res[0])
         sign = SignType(res)
-        print(sign, time()-start)
         return sign
 
     def is_reversed(self):

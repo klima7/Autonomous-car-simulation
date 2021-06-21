@@ -13,7 +13,7 @@ class Task:
         self.offset = offset
         self.backward = backward
 
-
+counter = 0
 class Driver:
 
     # Speed in simulation units per second
@@ -52,9 +52,12 @@ class Driver:
         self.update_traffic_lights()
         self.update_car_lights()
 
-        view = find_signs(self.car.view)
-        if view is not None:
-            self.car.set_view_visualization(view)
+        global counter
+        if counter % 5 == 0:
+            view = find_signs(self.car.view)
+            if view is not None:
+                self.car.set_view_visualization(view)
+        counter += 1
 
     def update_task(self):
         if self.cur_task is None:

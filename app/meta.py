@@ -262,6 +262,7 @@ class MetaManager:
                 return structure
             
     def _fetch_meta(self):
+        print('Fetching metadata')
         _, *meta = self._client.simxCallScriptFunction("get_meta@Meta", "sim.scripttype_childscript", [], self._client.simxServiceCall())
         roundabouts_meta, streets_meta, crossings_meta, parkings_meta = meta[0]
 
