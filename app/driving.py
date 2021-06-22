@@ -1,7 +1,8 @@
 from meta import Path, Crossing
 from routing import Position, RouteFinder
 from planning import RoutePlanner
-from visual import TrafficLightColor, recognize_light_color, find_signs
+from constants import SignType, TrafficLightColor
+from visual import TrafficLightColor, find_signs
 from car import Car
 
 
@@ -27,6 +28,7 @@ class Driver:
         self.mm = mm
         self.planner = RoutePlanner()
         self.counter = 0
+        self.signs = []
 
         self.tasks = []
         self.cur_task = None
@@ -50,9 +52,9 @@ class Driver:
         self.update_task()
         self.follow_route()
         self.update_speed()
+        self.update_signs()
         self.update_traffic_lights()
         self.update_car_lights()
-        self.update_signs()
 
     def update_task(self):
         if self.cur_task is None:
@@ -89,16 +91,19 @@ class Driver:
             self.cur_path = self.route[self.position]
 
     def update_traffic_lights(self):
-        if self.cur_task is None or self.cur_task.backward:
+        if self.signs is None:
             return
 
-        color = recognize_light_color(self.car.view)
-        if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
-            self.car.velocity = 0
+        for sign in self.signs:
+            if sign.type.value != SignType.TRAFFIC_LIGHTS.value:
+                continue
+            color = sign.recognize_color()
+            if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
+                self.car.velocity = 0
 
     def update_signs(self):
         if self.counter % 5 == 0:
-            signs, view = find_signs(self.car.view)
+            self.signs, view = find_signs(self.car.view)
             if view is not None:
                 self.car.set_view_visualization(view)
         self.counter += 1

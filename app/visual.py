@@ -26,7 +26,7 @@ class FoundSign:
         self.head_pos = self._locate_sign_head()
         self.head_image = self._cut_head_image(image)
         self.type = SignType.UNKNOWN
-        self.recognize()
+        self.recognize_sign()
 
     def _locate_sign_head(self):
         x, y, h = self.stick
@@ -39,7 +39,7 @@ class FoundSign:
             return None
         return image[y:y + a, x:x + a]
 
-    def recognize(self):
+    def recognize_sign(self):
         if self.head_image is None:
             return SignType.UNKNOWN
 
@@ -51,6 +51,18 @@ class FoundSign:
         res = model.predict(np.array([scaled]))
         res = np.argmax(res[0])
         self.type = SignType(res)
+
+    def recognize_color(self):
+        if _check_light_color(self.head_image, [0, 240, 200], [5, 255, 240]):
+            return TrafficLightColor.RED
+
+        if _check_light_color(self.head_image, [58, 240, 200], [62, 255, 240]):
+            return TrafficLightColor.GREEN
+
+        if _check_light_color(self.head_image, [28, 240, 200], [32, 255, 240]):
+            return TrafficLightColor.YELLOW
+
+        return TrafficLightColor.NONE
 
     def _is_reversed(self):
         mask = cv2.inRange(self.head_image, np.array([20, 0, 190]), np.array([40, 50, 250]))
@@ -88,7 +100,11 @@ class FoundSign:
         cv2.line(hsv_image, stick_start, stick_end, (0, 0, 0), 2)
 
         font = cv2.FONT_HERSHEY_PLAIN
-        cv2.putText(hsv_image, self.type.name, (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+
+        if self.type != SignType.TRAFFIC_LIGHTS:
+            cv2.putText(hsv_image, self.type.name, (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
+        else:
+            cv2.putText(hsv_image, self.recognize_color().name, (head_start[0], head_start[1]), font, 1, (0, 0, 0), 1, cv2.LINE_AA)
 
 
 def find_signs(image):
@@ -119,32 +135,13 @@ def _find_sticks(hsv_image):
     return sticks
 
 
-def recognize_light_color(image):
-    if image is None:
-        return TrafficLightColor.NONE
-
-    image = image[:, image.shape[1] // 2:]
-
-    if _check_light_color(image, [0, 240, 150], [5, 255, 190]):
-        return TrafficLightColor.RED
-
-    if _check_light_color(image, [58, 240, 150], [62, 255, 190]):
-        return TrafficLightColor.GREEN
-
-    if _check_light_color(image, [28, 240, 150], [30, 255, 190]):
-        return TrafficLightColor.YELLOW
-
-    return TrafficLightColor.NONE
-
-
 def _check_light_color(img, lower, upper):
-    image = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    mask = cv2.inRange(image, np.array(lower), np.array(upper))
+    mask = cv2.inRange(img, np.array(lower), np.array(upper))
 
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        if (abs(w - h) <= 30) and cv2.contourArea(contour) > 40:
+        if (abs(w - h) <= 30) and cv2.contourArea(contour) > 20:
             return True
 
     return False
