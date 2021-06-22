@@ -129,5 +129,6 @@ class Driver:
                 self.car.indicators_lights = Car.INDICATORS_LEFT if not self.cur_task.backward else Car.INDICATORS_RIGHT
             elif angle < -0.2:
                 self.car.indicators_lights = Car.INDICATORS_RIGHT if not self.cur_task.backward else Car.INDICATORS_LEFT
+            self.car.velocity *= 0.5
         if prev_crossing_pos is not None and 1.5 > prev_crossing_distance > 0.5:
             self.car.indicators_lights = Car.INDICATORS_DISABLED
