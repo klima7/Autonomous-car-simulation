@@ -106,6 +106,7 @@ class Driver:
     def update_car_lights(self):
         self.car.running_lights = True
         self.car.stop_lights = self.car.velocity == 0
+        self.car.reverse_lights = self.car.velocity < 0
 
         if self.route is None:
             self.car.indicators_lights = Car.INDICATORS_DISABLED
@@ -120,8 +121,8 @@ class Driver:
         if next_crossing_pos is not None and next_crossing_distance < 3.5:
             angle = self.route.get_angle(next_crossing_pos)
             if angle > 0.2:
-                self.car.indicators_lights = Car.INDICATORS_LEFT
+                self.car.indicators_lights = Car.INDICATORS_LEFT if not self.cur_task.backward else Car.INDICATORS_RIGHT
             elif angle < -0.2:
-                self.car.indicators_lights = Car.INDICATORS_RIGHT
-        if prev_crossing_pos is not None and 3 > prev_crossing_distance > 2:
+                self.car.indicators_lights = Car.INDICATORS_RIGHT if not self.cur_task.backward else Car.INDICATORS_LEFT
+        if prev_crossing_pos is not None and 1.5 > prev_crossing_distance > 0.5:
             self.car.indicators_lights = Car.INDICATORS_DISABLED
