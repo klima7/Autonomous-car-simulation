@@ -105,7 +105,9 @@ class Driver:
             if sign.type.value != SignType.TRAFFIC_LIGHTS.value:
                 continue
             color = sign.recognize_color()
-            if color == TrafficLightColor.RED or color == TrafficLightColor.YELLOW:
+            print(color)
+            if color.value == TrafficLightColor.RED.value or color.value == TrafficLightColor.YELLOW.value:
+                print('stop')
                 self.car.velocity = 0
 
     def update_signs(self):
@@ -123,7 +125,7 @@ class Driver:
             if sign.type.value == SignType.STOP.value:
                 stop_visible = True
 
-                if sign.distance < 1.35 and 2 < self.stop_visible_frames < 40 and self.stop_time == 0:
+                if sign.distance < 1.35 and 2 < self.stop_visible_frames < 25 and self.stop_time == 0:
                     self.stop_time = time() + self.STOP_TIME
 
         if stop_visible:
