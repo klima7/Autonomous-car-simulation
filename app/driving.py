@@ -1,8 +1,9 @@
+from time import time
 from meta import Path, Crossing
 from routing import Position, RouteFinder
 from planning import RoutePlanner
 from constants import SignType, TrafficLightColor
-from visual import TrafficLightColor, find_signs
+from visual import find_signs
 from car import Car
 
 
@@ -23,12 +24,18 @@ class Driver:
     WALKWAY_SPEED = 0.4
     LIMITED_SPEED = 0.5
 
+    STOP_TIME = 5
+
     def __init__(self, car, mm):
         self.car = car
         self.mm = mm
         self.planner = RoutePlanner()
         self.counter = 0
         self.signs = []
+
+        # Responding to stop sign
+        self.stop_visible_frames = 0
+        self.stop_time = 0
 
         self.tasks = []
         self.cur_task = None
@@ -107,6 +114,27 @@ class Driver:
             if view is not None:
                 self.car.set_view_visualization(view)
         self.counter += 1
+
+        if self.signs is None:
+            return
+
+        stop_visible = False
+        for sign in self.signs:
+            if sign.type.value == SignType.STOP.value:
+                stop_visible = True
+
+                if sign.distance < 1.35 and 2 < self.stop_visible_frames < 40 and self.stop_time == 0:
+                    self.stop_time = time() + self.STOP_TIME
+
+        if stop_visible:
+            self.stop_visible_frames += 1
+        else:
+            self.stop_visible_frames = 0
+
+        if time() < self.stop_time:
+            self.car.velocity = 0
+        else:
+            self.stop_time = 0
 
     def update_car_lights(self):
         self.car.running_lights = True
