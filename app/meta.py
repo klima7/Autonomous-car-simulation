@@ -139,7 +139,6 @@ class Path:
 
         return closest_path
 
-
 class SimPath(Path):
 
     def __init__(self, raw_meta, structure):
@@ -180,6 +179,15 @@ class SimPath(Path):
         return isinstance(self.structure, Roundabout) and \
                len(self.successors) == 1 and isinstance(self.successors[0].structure, Street) and \
                len(self.predecessors) == 1 and isinstance(self.predecessors[0].structure, Roundabout)
+
+    def get_successor(self):
+        return self.successors[0]
+
+    def get_sign(self):
+        return self.signs
+
+
+
 
     def __repr__(self):
         return f'SimPath({self.start_point} -> {self.end_point}, length={self.length:.2f}, successors={len(self.successors)}, signs={self.signs})'

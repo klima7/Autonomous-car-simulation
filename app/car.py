@@ -21,6 +21,8 @@ class Car:
     BACK_POINT_DISTANCE = 0.25
     FRONT_POINT_DISTANCE = 0.25
 
+
+
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())
@@ -66,6 +68,8 @@ class Car:
         self.stop_lights = bool(lights_data[1])
         self.running_lights = bool(lights_data[2])
         self.reverse_lights = bool(lights_data[3])
+
+        _, self.lidar_main_data = self._client.simxUnpackFloats(data[4], self._client.simxServiceCall())
 
     def set_planned_path_visualization(self, path):
         data = [[s.x, s.y] for s in path.samples]
@@ -127,3 +131,7 @@ class Car:
     @property
     def back_point(self):
         return util.move_forward(self.gps, self.orient, 0)
+
+    def get_lidar_data(self):
+        return self.lidar_main_data
+
