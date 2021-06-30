@@ -1,8 +1,5 @@
 import math
 import time
-
-from app import util
-from app.util import Point
 from meta import Path, Crossing
 from routing import Position, RouteFinder
 from planning import RoutePlanner
@@ -21,6 +18,7 @@ class Task:
 
 
 class Driver:
+
     # Speed in simulation units per second
     NORMAL_SPEED = 1
     BACKWARD_SPEED = 1
@@ -71,8 +69,7 @@ class Driver:
             if self.tasks:
                 self.cur_task = self.tasks.pop(0)
                 self.position = Position(reversed=self.cur_task.backward)
-                self.route = RouteFinder.find_route(self.cur_path, self.cur_task.target,
-                                                    backward=self.cur_task.backward)
+                self.route = RouteFinder.find_route(self.cur_path, self.cur_task.target,backward=self.cur_task.backward)
 
     def update_speed(self):
         if self.cur_task is None:
@@ -89,8 +86,7 @@ class Driver:
         leading_point = self.car.front_point if not self.cur_task.backward else self.car.back_point
         self.position.offset = self.cur_path.get_closest_offset(leading_point)
 
-        path, radius = self.planner.plan_route(self.route, self.position, leading_point, self.car.orient,
-                                               backward=self.cur_task.backward)
+        path, radius = self.planner.plan_route(self.route, self.position, leading_point, self.car.orient,backward=self.cur_task.backward)
         self.car.set_wheels_by_radius(radius if not self.cur_task.backward else -radius)
         self.car.set_planned_path_visualization(path)
 
@@ -121,13 +117,10 @@ class Driver:
             self.signs, view = find_signs(self.car.view)
             if view is not None:
                 self.car.set_view_visualization(view)
-            else:
-                self.away_from_sign = True
 
         self.counter += 1
 
         if self.signs is None:
-            self.away_from_sign = True
             return
 
         stop_visible = False
@@ -160,17 +153,13 @@ class Driver:
             self.car.indicators_lights = Car.INDICATORS_DISABLED
             return
 
-        next_crossing_pos = self.route.get_next_position(self.position, lambda path: isinstance(path.structure,
-                                                                                                Crossing) or path.is_roundabout_exit())
+        next_crossing_pos = self.route.get_next_position(self.position, lambda path: isinstance(path.structure,Crossing) or path.is_roundabout_exit())
         next_crossing_distance = self.route.get_distance_between(self.position, next_crossing_pos)
-
-        prev_crossing_pos = self.route.get_prev_position(self.position, lambda path: isinstance(path.structure,
-                                                                                                Crossing) or path.is_roundabout_exit())
+        prev_crossing_pos = self.route.get_prev_position(self.position, lambda path: isinstance(path.structure,Crossing) or path.is_roundabout_exit())
         prev_crossing_distance = self.route.get_distance_between(prev_crossing_pos, self.position)
 
         self.next_crossing_distance_global = next_crossing_distance
         self.prev_crossing_distance_global = prev_crossing_distance
-
 
         if next_crossing_pos is not None and next_crossing_distance < 3.5:
             angle = self.route.get_angle(next_crossing_pos)
@@ -214,7 +203,7 @@ class Driver:
         self.left_side = None
         self.next_crossing_distance_global = 0.0
         self.prev_crossing_distance_global = 0.0
-        self.left_point_set_before_obstacle = 0
+        self.set_point_before_obstacle = 0
         self.away_from_sign = True
         self.tem_point = None
 
@@ -238,7 +227,6 @@ class Driver:
     def use_lidar(self):
         away_from_signs_and_crossing = self.away_from_crossing()
         if away_from_signs_and_crossing:
-            print("jebane ronda")
             lidar_data = Car.get_lidar_data(self.car)
 
             front_distance = 2
@@ -293,10 +281,10 @@ class Driver:
 
 
             if self.proper_side is False:
-                if self.left_point_set_before_obstacle == 0:
+                if self.set_point_before_obstacle == 0:
                     self.tem_point = self.point_on_opposite_path()
-                    self.left_point_set_before_obstacle = 1
-                if self.left_point_set_before_obstacle == 1:
+                    self.set_point_before_obstacle = 1
+                if self.set_point_before_obstacle == 1:
                     if not self.lidar_end_detection[0]:
                         self.car.navigate(self.tem_point)
                     else:

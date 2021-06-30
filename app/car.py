@@ -21,8 +21,6 @@ class Car:
     BACK_POINT_DISTANCE = 0.25
     FRONT_POINT_DISTANCE = 0.25
 
-
-
     def __init__(self, client: RemoteApiClient):
         self._client = client
         _, self.camera_handle = self._client.simxGetObjectHandle('ViewCamera', self._client.simxServiceCall())

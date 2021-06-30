@@ -58,6 +58,7 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
         start = time()
         car.refresh()
         driver.update()
-        driver.use_lidar()
+        
+        #driver.use_lidar()
         car.apply()
         # print(time() - start, car.orient)
