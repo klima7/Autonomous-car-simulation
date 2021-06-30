@@ -18,37 +18,13 @@ with b0RemoteApi.RemoteApiClient(CLIENT_NAME, CHANNEL_NAME, inactivityToleranceI
     mm = MetaManager(client)
     driver = Driver(car, mm)
 
-    # Signs recognition test
-    # driver.drive_to_path('Path165', offset=0.5)
+    driver.drive_to_path('Path172', offset=0.9)
+    driver.drive_to_path('Path194', offset=0.3)
+    driver.drive_to_path('Path192', offset=0.15, backward=True)
 
-    # Straight Parking
-    # driver.drive_to_path('Path197', offset=0.4)
-    # driver.drive_to_path('Path192', offset=0.4, backward=True)
-    # driver.drive_to_path('Path194', offset=0.4)
-    # driver.drive_to_path('Path192', offset=0.3, backward=True)
-    # driver.drive_to_path('Path195', offset=0.4)
-    # driver.drive_to_path('Path192', offset=0.3, backward=True)
-    # driver.drive_to_path('Path170', offset=0.5)
-
-    # Skewed parking
-    # driver.drive_to_path('Path218', offset=0.5)
-    # driver.drive_to_path('Path213', offset=0.0, backward=True)
-    # driver.drive_to_path('Path224', offset=0.5)
-    # driver.drive_to_path('Path230', offset=0.0, backward=True)
-    # driver.drive_to_path('Path152', offset=0.5)
-
-    # Reversing
-    driver.drive_to_path('Path29', offset=0.1)
-    driver.drive_to_path('Path4', offset=0.1, backward=True)
-    driver.drive_to_path('Path41', offset=0.5)
-
-    # Driving forward to some streets
-    driver.drive_to_structure('StreetPaths9')
-    driver.drive_to_structure('RoundaboutPaths0')
-
-    # Drive backward to some streets
-    driver.drive_to_structure('StreetPaths9', backward=True)
-    driver.drive_to_structure('RoundaboutPaths0', backward=True)
+    driver.drive_to_path('Path163', offset=0.05)
+    driver.drive_to_path('Path155', offset=0.05, backward=True)
+    driver.drive_to_path('Path209', offset=0.5)
 
     while True:
         start = time()
